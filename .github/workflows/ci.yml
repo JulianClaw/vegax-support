@@ -1,0 +1,49 @@
+name: CI
+
+# Written ahead of the public repository: this workflow is NOT wired to any remote yet.
+# Once the repo is created, every push/PR runs:
+#   * a PHP syntax check across the PHP versions the plugin claims to support,
+#   * the PHPUnit unit tests (tests/),
+#   * the WordPress coding-standard check (PHPCS).
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - name: PHP syntax check (php -l on every file)
+        run: |
+          set -e
+          find vegax-support -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      - name: Install dev dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHPUnit
+        run: composer test
+
+      - name: PHPCS (WordPress standard)
+        if: ${{ matrix.php == '8.2' }}
+        run: composer lint

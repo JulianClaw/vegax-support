@@ -1,0 +1,17 @@
+# Build output
+/dist/
+
+# Editor / backup junk
+*.bak*
+*~
+.DS_Store
+Thumbs.db
+
+# Composer / Node
+/vendor/
+/node_modules/
+
+# Local secrets — never commit
+.env
+.env.*
+*.log

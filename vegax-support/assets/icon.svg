@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Vegax Support">
+  <rect width="256" height="256" rx="56" fill="#07A87F"/>
+  <rect x="56" y="64" width="144" height="112" rx="28" fill="#FFFFFF"/>
+  <polygon points="92,168 92,212 132,176" fill="#FFFFFF"/>
+  <circle cx="100" cy="120" r="11" fill="#07A87F"/>
+  <circle cx="128" cy="120" r="11" fill="#07A87F"/>
+  <circle cx="156" cy="120" r="11" fill="#07A87F"/>
+</svg>

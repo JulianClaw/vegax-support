@@ -1,0 +1,27 @@
+# Files/dirs excluded from the WordPress.org distributed package.
+# (The release workflow deploys the vegax-support/ folder via BUILD_DIR, so
+#  these exclusions are the git-side safety net for any git-archive based deploy.)
+/.git
+/.github
+/.gitignore
+/.distignore
+/.gitattributes
+/dist
+/node_modules
+/vendor
+/build
+/tests
+/php_syntax_check.py
+/verify_submission.py
+/make_assets.py
+/build.sh
+/phpcs.xml.dist
+/phpunit.xml.dist
+/composer.json
+/composer.lock
+/CHANGELOG.md
+/README.md
+*.bak*
+*~
+.DS_Store
+Thumbs.db

@@ -1,0 +1,51 @@
+name: Deploy to WordPress.org
+
+# DORMANT BY DESIGN.
+# This workflow does NOT run on normal pushes or pull requests.
+# It only fires when the project owner pushes a version tag (e.g. v1.0.8).
+# Until the two SVN secrets exist it simply never runs -> no red builds.
+#
+# Owner setup (3 steps):
+#   1. Settings -> Secrets and variables -> Actions -> add SVN_USERNAME + SVN_PASSWORD
+#   2. Tag a release:  git tag v1.0.8 && git push origin v1.0.8
+#   3. Watch the run under the "Actions" tab.
+#
+# The tag name (minus a leading "v") must match the plugin header "Version:"
+# in vegax-support/vegax-support.php, otherwise WordPress.org rejects the tag.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Manual trigger kept for dry runs by the owner (never auto-runs).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.ref_name }} to WordPress.org
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare SVN trunk build directory
+        # Deploy only the real plugin files (assets/ go to the SVN /assets/ dir,
+        # which the deploy action handles separately via ASSETS_DIR).
+        run: |
+          set -euo pipefail
+          rm -rf build && mkdir -p build
+          rsync -a --exclude 'assets' vegax-support/ build/
+          echo "Files for SVN trunk:"
+          find build -type f | sort
+
+      - name: Deploy to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: vegax-support
+          BUILD_DIR: build
+          ASSETS_DIR: vegax-support/assets

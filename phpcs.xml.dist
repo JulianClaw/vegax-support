@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<ruleset name="Vegax Support">
+	<description>Coding standard for the Vegax Support plugin (WordPress + WooCommerce rules).</description>
+
+	<file>vegax-support</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/assets/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<rule ref="WordPress">
+		<!-- The plugin deliberately uses class-{prefix}-{name}.php file naming. -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array" value="vegax-support"/>
+		</properties>
+	</rule>
+
+	<config name="minimum_supported_wp_version" value="6.5"/>
+	<config name="testVersion" value="7.4-"/>
+</ruleset>
