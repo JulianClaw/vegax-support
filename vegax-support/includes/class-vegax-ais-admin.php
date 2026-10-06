@@ -194,6 +194,12 @@ class Vegax_AIS_Admin {
 		}
 		update_option( VEGAX_AIS_OPTION, $saved );
 		update_option( 'vegax_ais_version', VEGAX_AIS_VERSION );
+		// 06/10/2026 — keep the expiring pair the service just issued (expiry read from the
+		// response, never assumed). A response without a pair leaves the static credentials
+		// untouched, so the old connect path keeps working.
+		if ( class_exists( 'Vegax_AIS_Tokens' ) ) {
+			Vegax_AIS_Tokens::store( $body );
+		}
 
 		return array(
 			'ok'      => true,
@@ -452,10 +458,35 @@ class Vegax_AIS_Admin {
 			<?php endif; ?>
 			<?php endif; ?>
 
+			<?php if ( class_exists( 'Vegax_AIS_Tokens' ) && Vegax_AIS_Tokens::failed() ) : ?>
+				<div class="notice notice-error">
+					<p><strong><?php esc_html_e( 'Vegax connection expired.', 'vegax-support' ); ?></strong>
+					<?php esc_html_e( 'The access token could not be renewed automatically, so the store has paused sending data to Vegax. Click “Reconnect with Vegax” below to restore it.', 'vegax-support' ); ?></p>
+				</div>
+			<?php endif; ?>
+
 			<table class="widefat striped" style="max-width:760px;margin-bottom:20px">
 				<tbody>
 					<tr><td><strong><?php esc_html_e( 'Store key', 'vegax-support' ); ?></strong></td><td><code><?php echo esc_html( Vegax_AIS_Settings::store_id() ); ?></code></td></tr>
 					<tr><td><strong><?php esc_html_e( 'Connected', 'vegax-support' ); ?></strong></td><td><?php echo Vegax_AIS_Settings::is_connected() ? esc_html__( 'Yes', 'vegax-support' ) : esc_html__( 'No - add the token and secret', 'vegax-support' ); ?></td></tr>
+					<?php if ( class_exists( 'Vegax_AIS_Tokens' ) && Vegax_AIS_Tokens::has_pair() ) : ?>
+						<tr><td><strong><?php esc_html_e( 'Access token', 'vegax-support' ); ?></strong></td><td>
+						<?php
+						if ( Vegax_AIS_Tokens::failed() ) {
+							esc_html_e( 'Expired - needs reconnecting', 'vegax-support' );
+						} elseif ( '' !== Vegax_AIS_Tokens::access_token() ) {
+							$vegax_exp = (int) Vegax_AIS_Settings::get( 'access_token_expires_at' );
+							printf(
+								/* translators: %s: date and time the access token expires. */
+								esc_html__( 'Valid until %s', 'vegax-support' ),
+								esc_html( date_i18n( 'Y-m-d H:i', $vegax_exp ) )
+							);
+						} else {
+							esc_html_e( 'Renewing in the background…', 'vegax-support' );
+						}
+						?>
+						</td></tr>
+					<?php endif; ?>
 					<tr><td><strong><?php esc_html_e( 'Order storage (HPOS)', 'vegax-support' ); ?></strong></td><td><?php echo Vegax_AIS_Orders::hpos_enabled() ? esc_html__( 'High-Performance Order Storage', 'vegax-support' ) : esc_html__( 'Legacy post tables', 'vegax-support' ); ?></td></tr>
 					<tr><td><strong><?php esc_html_e( 'Products in catalogue', 'vegax-support' ); ?></strong></td><td><?php echo (int) Vegax_AIS_Knowledge::product_count(); ?></td></tr>
 					<tr><td><strong><?php esc_html_e( 'Last heartbeat', 'vegax-support' ); ?></strong></td><td><?php echo ! empty( $status['last_heartbeat'] ) ? esc_html( date_i18n( 'Y-m-d H:i', (int) $status['last_heartbeat'] ) ) : esc_html__( 'never', 'vegax-support' ); ?></td></tr>
@@ -556,7 +587,7 @@ class Vegax_AIS_Admin {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-bottom:14px">
 				<input type="hidden" name="action" value="vegax_ais_oauth_start" />
 				<?php wp_nonce_field( 'vegax_ais_oauth_start' ); ?>
-				<button class="button button-primary" type="submit"><?php esc_html_e( 'Connect with Vegax', 'vegax-support' ); ?></button>
+				<button class="button button-primary" type="submit"><?php echo ( class_exists( 'Vegax_AIS_Tokens' ) && Vegax_AIS_Tokens::failed() ) ? esc_html__( 'Reconnect with Vegax', 'vegax-support' ) : esc_html__( 'Connect with Vegax', 'vegax-support' ); ?></button>
 			</form>
 			<details style="max-width:760px">
 				<summary style="cursor:pointer"><?php esc_html_e( 'Have a pairing code instead? (older stores)', 'vegax-support' ); ?></summary>

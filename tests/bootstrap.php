@@ -164,6 +164,50 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 		return json_encode( $data, $options, $depth );
 	}
 }
+
+/* -------------------------------------------------------------------------
+ * HTTP + scheduler stubs (queue-driven, no network).
+ * ---------------------------------------------------------------------- */
+$GLOBALS['vegax_test_http'] = array();
+if ( ! function_exists( 'wp_remote_post' ) ) {
+	function wp_remote_post( $url, $args = array() ) {
+		$q = $GLOBALS['vegax_test_http'];
+		if ( empty( $q ) ) {
+			return new WP_Error( 'vegax_test_no_http', 'no queued HTTP response' );
+		}
+		return array_shift( $GLOBALS['vegax_test_http'] );
+	}
+}
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	function wp_remote_retrieve_response_code( $r ) {
+		return ( is_array( $r ) && isset( $r['response']['code'] ) ) ? (int) $r['response']['code'] : 0;
+	}
+}
+if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
+	function wp_remote_retrieve_body( $r ) {
+		return ( is_array( $r ) && isset( $r['body'] ) ) ? (string) $r['body'] : '';
+	}
+}
+if ( ! function_exists( 'wp_next_scheduled' ) ) {
+	function wp_next_scheduled( $hook ) {
+		return false;
+	}
+}
+if ( ! function_exists( 'wp_schedule_event' ) ) {
+	function wp_schedule_event( $ts, $recurrence, $hook ) {
+		return true;
+	}
+}
+if ( ! function_exists( 'wp_clear_scheduled_hook' ) ) {
+	function wp_clear_scheduled_hook( $hook ) {
+		return true;
+	}
+}
+if ( ! function_exists( 'date_i18n' ) ) {
+	function date_i18n( $format, $ts = 0 ) {
+		return gmdate( $format, (int) $ts );
+	}
+}
 if ( ! function_exists( 'untrailingslashit' ) ) {
 	function untrailingslashit( $string ) {
 		return rtrim( (string) $string, '/\\' );
@@ -312,6 +356,7 @@ $vegax_plugin_dir = rtrim( $vegax_plugin_dir, '/' );
 
 foreach ( array(
 	'class-vegax-ais-settings.php',
+	'class-vegax-ais-tokens.php',
 	'class-vegax-ais-safe.php',
 	'class-vegax-ais-identity.php',
 	'class-vegax-ais-rest.php',
@@ -334,4 +379,5 @@ function vegax_test_reset( array $options = array() ) {
 	$GLOBALS['vegax_test_user_id']        = 7;
 	$GLOBALS['vegax_test_nocache_called'] = false;
 	$GLOBALS['vegax_test_headers']        = array();
+	$GLOBALS['vegax_test_http']           = array();
 }

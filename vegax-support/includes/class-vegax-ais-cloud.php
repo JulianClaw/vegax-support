@@ -50,6 +50,12 @@ class Vegax_AIS_Cloud {
 		if ( ! Vegax_AIS_Settings::is_connected() ) {
 			return new WP_Error( 'vegax_not_connected', __( 'The store is not connected to Vegax yet.', 'vegax-support' ) );
 		}
+		// 06/10/2026 — SOFT FAIL: when the expiring token pair could not be renewed, stop
+		// calling the service at all (no retry storm, no slowdown) until the merchant
+		// reconnects. The static-token stores never set this flag, so they are unaffected.
+		if ( class_exists( 'Vegax_AIS_Tokens' ) && Vegax_AIS_Tokens::failed() ) {
+			return new WP_Error( 'vegax_token_expired', __( 'The Vegax connection needs to be renewed. Open the Vegax Support settings and click Connect with Vegax again.', 'vegax-support' ) );
+		}
 		// Guideline 7: nothing leaves the site unless the administrator has agreed to the data
 		// sharing described in the readme. The consent control lives on the settings screen.
 		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
@@ -60,20 +66,30 @@ class Vegax_AIS_Cloud {
 		if ( false === $body ) {
 			return new WP_Error( 'vegax_encode', __( 'Could not encode the payload.', 'vegax-support' ) );
 		}
-		$url = Vegax_AIS_Settings::api_base() . $path;
+		$url     = Vegax_AIS_Settings::api_base() . $path;
+		$headers = array(
+			'Content-Type'      => 'application/json',
+			'X-Vegax-Token'     => (string) Vegax_AIS_Settings::get( 'store_token' ),
+			'X-Vegax-Timestamp' => $ts,
+			'X-Vegax-Signature' => self::sign( $ts, $body ),
+			'X-Vegax-Store'     => Vegax_AIS_Settings::store_id(),
+			'X-Vegax-Plugin'    => 'vegax-support/' . VEGAX_AIS_VERSION,
+			'User-Agent'        => 'Vegax-Support/' . VEGAX_AIS_VERSION . '; ' . home_url(),
+		);
+		// 06/10/2026 — also present the expiring access token when we hold a live one. The HMAC
+		// (signed with the store secret) is unchanged, so a store still on the static path sends
+		// exactly the same request it always did.
+		if ( class_exists( 'Vegax_AIS_Tokens' ) ) {
+			$access = Vegax_AIS_Tokens::access_token();
+			if ( '' !== $access ) {
+				$headers['X-Vegax-Access-Token'] = $access;
+			}
+		}
 		$res = wp_remote_post(
 			$url,
 			array(
 				'timeout' => 20,
-				'headers' => array(
-					'Content-Type'      => 'application/json',
-					'X-Vegax-Token'     => (string) Vegax_AIS_Settings::get( 'store_token' ),
-					'X-Vegax-Timestamp' => $ts,
-					'X-Vegax-Signature' => self::sign( $ts, $body ),
-					'X-Vegax-Store'     => Vegax_AIS_Settings::store_id(),
-					'X-Vegax-Plugin'    => 'vegax-support/' . VEGAX_AIS_VERSION,
-					'User-Agent'        => 'Vegax-Support/' . VEGAX_AIS_VERSION . '; ' . home_url(),
-				),
+				'headers' => $headers,
 				'body'    => $body,
 			)
 		);

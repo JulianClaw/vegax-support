@@ -19,20 +19,28 @@ class Vegax_AIS_Settings {
 	 */
 	public static function defaults() {
 		return array(
-			'api_base'              => VEGAX_AIS_API_DEFAULT,
-			'store_token'           => '',
-			'store_secret'          => '',
-			'agent_name'            => 'Vegax Support',
-			'brand_color'           => '#07A87F',
-			'widget_enabled'        => 1,
-			'order_lookup_enabled'  => 1,
-			'share_customer_email'  => 0,
-			'consent_sync'          => 0,
-			'identity_verification' => 0,
-			'max_products'          => 300,
-			'store_id_override'     => '',
-			'faqs_text'             => '',
-			'custom_rules_text'     => '',
+			'api_base'                 => VEGAX_AIS_API_DEFAULT,
+			'store_token'              => '',
+			'store_secret'             => '',
+			// 06/10/2026 — expiring token pair (Shopify-style). Empty ⇒ the store uses the
+			// static store_token/store_secret path exactly as before (backward compatible).
+			'access_token'             => '',
+			'refresh_token'            => '',
+			'access_token_expires_at'  => 0,
+			'refresh_token_expires_at' => 0,
+			'token_refresh_failed'     => 0,
+			'token_last_error'         => '',
+			'agent_name'               => 'Vegax Support',
+			'brand_color'              => '#07A87F',
+			'widget_enabled'           => 1,
+			'order_lookup_enabled'     => 1,
+			'share_customer_email'     => 0,
+			'consent_sync'             => 0,
+			'identity_verification'    => 0,
+			'max_products'             => 300,
+			'store_id_override'        => '',
+			'faqs_text'                => '',
+			'custom_rules_text'        => '',
 		);
 	}
 

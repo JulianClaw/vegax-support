@@ -43,6 +43,7 @@ Once the administrator has entered the store token and secret (or connected with
 * **Policy pages and custom rules** (shipping, returns, warranty and similar&ndash; named pages found on your own site), plus the FAQs and store rules the administrator types into the settings, as plain text: sent on the same sync.
 * **Order status events** (order number, status, status label, order date, total, currency, item count, shipped flag, shipment tracking providers and URLs) and a hashed customer e-mail: sent when an order status changes. The clear-text e-mail is only sent if the administrator enables the "Send the customer e-mail with order events" option.
 * **Daily heartbeat** (a small status payload sent once a day): store key, site URL, site name, WordPress version, WooCommerce version, PHP version, currency, HPOS flag, order-lookup enabled flag, widget enabled flag, product count.
+* **Token refresh** (only for stores connected with the expiring-token connection, and only when the access token is close to expiry): the store key and the refresh token, so the service can issue a fresh token pair. This runs in the background and is never triggered by a shopper's page view.
 * **Pairing request** (only when the administrator uses the one-time pairing code or the Connect with Vegax authorization): the site URL, the one-time code and the plugin version.
 * **Identity token** (only when the administrator switches on Identity verification, and only for a signed-in customer): a short-lived signed token carrying the customer's store id and an expiry. It is a signature, not personal data — no name, e-mail or address is included.
 
@@ -92,6 +93,7 @@ Yes, it is GPL-2.0-or-later. The Vegax service is a paid subscription; the plugi
 * Consolidated all input sanitising and output escaping into one shared helper (`Vegax_AIS_Safe`) used by the admin screen and the storefront widget.
 * Added developer extension points — see the plugin README "Developers" section: `vegax_ais_widget_tag_attributes`, `vegax_ais_knowledge_product`, `vegax_ais_heartbeat_payload`, `vegax_ais_order_event_payload`.
 * Added a PHPUnit test suite and a GitHub Actions workflow (syntax check across PHP versions, PHPUnit, PHPCS) for maintainers.
+* The connection now uses a **short-lived access token together with a longer-lived refresh token** (issued when the store is connected). The plugin reads the lifetime from the service response and renews the pair in the **background** (a WordPress cron job) before it expires &mdash; never during a shopper's page view, so the storefront is never slowed down. If a renewal cannot be completed the store **pauses sending data** instead of failing, and the settings screen shows a **Reconnect with Vegax** prompt. Stores connected with the older static token and secret keep working exactly as before.
 
 = 1.0.7 =
 

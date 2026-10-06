@@ -1,6 +1,18 @@
 # Changelog
 
 ## 1.0.8 — 2026-10-06
+- **Token có hạn + tự làm mới** (bắt chước Shopify): khi kết nối, dịch vụ phát thêm **cặp**
+  `access_token` (ngắn) + `refresh_token` (dài). Plugin **đọc `expires_in` từ phản hồi** (KHÔNG gõ cứng),
+  lưu cả cặp, và **làm mới trong NỀN** bằng cron WordPress (`vegax_ais_cron_refresh`, lịch 15 phút) —
+  KHÔNG bao giờ gọi lúc khách đang xem ⇒ không làm chậm trang. Phía office: `vegax_woo.py` thêm
+  `/api/woo/token/refresh` (refresh token **dùng-1-lần**, xoay mỗi lần, so `hmac.compare_digest`, buộc theo
+  host) + khoá theo store chống race acquire/refresh. **Hỏng cặp ⇒ xử lý mềm**: `Vegax_AIS_Cloud::post`
+  ngừng gọi mạng (`vegax_token_expired`), màn admin hiện thông báo + nút **Reconnect with Vegax**;
+  **KHÔNG làm sập trang khách**.
+- **Tương thích ngược**: store đang nối bằng **khoá tĩnh** (`store_token`/`store_secret`) chạy y như cũ —
+  không có `refresh_token` ⇒ mọi nhánh token mới thành no-op. Ghi rõ trong readme.txt + CHANGELOG.
+- **Test mới**: `tests/TokenTest.php` (đọc `expires_in`; hết hạn ⇒ tự làm mới; HTTP lỗi/transport lỗi ⇒
+  xử lý mềm; store tĩnh không gọi mạng; khoá single-flight chống làm mới trùng; cổng soft-fail của Cloud).
 - **Consent chuyển sang opt-in**: `consent_sync` mặc định `1 → 0` (`class-vegax-ais-settings.php`). Cài mới **không gửi**
   gì cho tới khi chủ shop tự tick ô "Data sharing" — đúng luật WordPress.org #7. (Ép ở lớp gửi vẫn giữ:
   `Vegax_AIS_Cloud::post` trả `vegax_no_consent` khi chưa đồng ý.)

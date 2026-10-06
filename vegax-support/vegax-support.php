@@ -28,6 +28,7 @@ define( 'VEGAX_AIS_API_DEFAULT', 'https://office.vegaxclaw.com' );
 define( 'VEGAX_AIS_OPTION', 'vegax_ais_settings' );
 
 require_once VEGAX_AIS_DIR . 'includes/class-vegax-ais-settings.php';
+require_once VEGAX_AIS_DIR . 'includes/class-vegax-ais-tokens.php';
 require_once VEGAX_AIS_DIR . 'includes/class-vegax-ais-safe.php';
 require_once VEGAX_AIS_DIR . 'includes/class-vegax-ais-cloud.php';
 require_once VEGAX_AIS_DIR . 'includes/class-vegax-ais-identity.php';
@@ -124,12 +125,35 @@ add_action(
 		Vegax_AIS_Widget::init();
 		Vegax_AIS_Rest::init();
 		Vegax_AIS_Cloud::init();
+		Vegax_AIS_Tokens::init();
 		Vegax_AIS_Admin::init();
 	}
 );
 
 /**
- * Activation: remember the version and schedule the two background jobs.
+ * A 15-minute schedule for the token-refresh job.
+ *
+ * WP-Cron's built-in schedules are hourly/twicedaily/daily — too coarse to renew a short-lived
+ * access token safely. The custom schedule keeps the renewal OFF the storefront request path:
+ * it runs entirely in the background (wp-cron), so a visitor never waits and never triggers it.
+ * 15 minutes keeps a comfortable margin under the 1-hour access-token lifetime (renewed at
+ * least 30 minutes before expiry, see Vegax_AIS_Tokens::REFRESH_MARGIN).
+ */
+add_filter(
+	'cron_schedules',
+	function ( $schedules ) {
+		if ( ! isset( $schedules['vegax_ais_15min'] ) ) {
+			$schedules['vegax_ais_15min'] = array(
+				'interval' => 15 * MINUTE_IN_SECONDS,
+				'display'  => __( 'Every 15 minutes (Vegax token)', 'vegax-support' ),
+			);
+		}
+		return $schedules;
+	}
+);
+
+/**
+ * Activation: remember the version and schedule the background jobs.
  */
 register_activation_hook(
 	__FILE__,
@@ -140,6 +164,10 @@ register_activation_hook(
 		}
 		if ( ! wp_next_scheduled( 'vegax_ais_cron_sync' ) ) {
 			wp_schedule_event( time() + 300, 'daily', 'vegax_ais_cron_sync' );
+		}
+		// Token renewal runs in the background, never on a page view.
+		if ( ! wp_next_scheduled( 'vegax_ais_cron_refresh' ) ) {
+			wp_schedule_event( time() + 300, 'vegax_ais_15min', 'vegax_ais_cron_refresh' );
 		}
 	}
 );
@@ -152,5 +180,6 @@ register_deactivation_hook(
 	function () {
 		wp_clear_scheduled_hook( 'vegax_ais_cron_heartbeat' );
 		wp_clear_scheduled_hook( 'vegax_ais_cron_sync' );
+		wp_clear_scheduled_hook( 'vegax_ais_cron_refresh' );
 	}
 );
