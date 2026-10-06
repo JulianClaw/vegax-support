@@ -53,12 +53,12 @@ class Vegax_AIS_Settings {
 	 * One setting.
 	 *
 	 * @param string $key     Setting key.
-	 * @param mixed  $default Fallback.
+	 * @param mixed  $fallback Fallback.
 	 * @return mixed
 	 */
-	public static function get( $key, $default = '' ) {
+	public static function get( $key, $fallback = '' ) {
 		$all = self::all();
-		return array_key_exists( $key, $all ) ? $all[ $key ] : $default;
+		return array_key_exists( $key, $all ) ? $all[ $key ] : $fallback;
 	}
 
 	/**
@@ -100,7 +100,7 @@ class Vegax_AIS_Settings {
 		$override = trim( (string) self::get( 'store_id_override', '' ) );
 		if ( '' !== $override ) {
 			if ( false !== strpos( $override, '://' ) ) {
-				$parsed = wp_parse_url( $override, PHP_URL_HOST );
+				$parsed   = wp_parse_url( $override, PHP_URL_HOST );
 				$override = is_string( $parsed ) ? $parsed : '';
 			}
 			$override = strtolower( ltrim( $override, '.' ) );
@@ -140,12 +140,12 @@ class Vegax_AIS_Settings {
 	 * One field out of the stored status array.
 	 *
 	 * @param string $key     Field name.
-	 * @param mixed  $default Fallback.
+	 * @param mixed  $fallback Fallback.
 	 * @return mixed
 	 */
-	public static function get_status_value( $key, $default = '' ) {
+	public static function get_status_value( $key, $fallback = '' ) {
 		$status = self::status();
-		return array_key_exists( $key, $status ) ? $status[ $key ] : $default;
+		return array_key_exists( $key, $status ) ? $status[ $key ] : $fallback;
 	}
 
 	/**

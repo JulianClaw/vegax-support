@@ -14,6 +14,8 @@
  * Text Domain:       vegax-support
  * WC requires at least: 7.0
  * WC tested up to: 11.1
+ *
+ * @package Vegax_Support
  */
 
 defined( 'ABSPATH' ) || exit;

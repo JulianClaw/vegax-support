@@ -66,13 +66,13 @@ class Vegax_AIS_Cloud {
 			array(
 				'timeout' => 20,
 				'headers' => array(
-					'Content-Type'        => 'application/json',
-					'X-Vegax-Token'       => (string) Vegax_AIS_Settings::get( 'store_token' ),
-					'X-Vegax-Timestamp'   => $ts,
-					'X-Vegax-Signature'   => self::sign( $ts, $body ),
-					'X-Vegax-Store'       => Vegax_AIS_Settings::store_id(),
-					'X-Vegax-Plugin'      => 'vegax-support/' . VEGAX_AIS_VERSION,
-					'User-Agent'          => 'Vegax-Support/' . VEGAX_AIS_VERSION . '; ' . home_url(),
+					'Content-Type'      => 'application/json',
+					'X-Vegax-Token'     => (string) Vegax_AIS_Settings::get( 'store_token' ),
+					'X-Vegax-Timestamp' => $ts,
+					'X-Vegax-Signature' => self::sign( $ts, $body ),
+					'X-Vegax-Store'     => Vegax_AIS_Settings::store_id(),
+					'X-Vegax-Plugin'    => 'vegax-support/' . VEGAX_AIS_VERSION,
+					'User-Agent'        => 'Vegax-Support/' . VEGAX_AIS_VERSION . '; ' . home_url(),
 				),
 				'body'    => $body,
 			)
@@ -98,19 +98,19 @@ class Vegax_AIS_Cloud {
 	 */
 	public static function send_heartbeat() {
 		$data = array(
-			'store'           => Vegax_AIS_Settings::store_id(),
-			'ts'              => time(),
-			'plugin_version'  => VEGAX_AIS_VERSION,
-			'wp_version'      => get_bloginfo( 'version' ),
-			'wc_version'      => defined( 'WC_VERSION' ) ? WC_VERSION : '',
-			'php_version'     => PHP_VERSION,
-			'hpos'            => Vegax_AIS_Orders::hpos_enabled(),
-			'order_lookup'    => (int) Vegax_AIS_Settings::get( 'order_lookup_enabled' ),
-			'widget_enabled'  => (int) Vegax_AIS_Settings::get( 'widget_enabled' ),
-			'product_count'   => Vegax_AIS_Knowledge::product_count(),
-			'site_url'        => home_url(),
-			'site_name'       => get_bloginfo( 'name' ),
-			'currency'        => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : '',
+			'store'          => Vegax_AIS_Settings::store_id(),
+			'ts'             => time(),
+			'plugin_version' => VEGAX_AIS_VERSION,
+			'wp_version'     => get_bloginfo( 'version' ),
+			'wc_version'     => defined( 'WC_VERSION' ) ? WC_VERSION : '',
+			'php_version'    => PHP_VERSION,
+			'hpos'           => Vegax_AIS_Orders::hpos_enabled(),
+			'order_lookup'   => (int) Vegax_AIS_Settings::get( 'order_lookup_enabled' ),
+			'widget_enabled' => (int) Vegax_AIS_Settings::get( 'widget_enabled' ),
+			'product_count'  => Vegax_AIS_Knowledge::product_count(),
+			'site_url'       => home_url(),
+			'site_name'      => get_bloginfo( 'name' ),
+			'currency'       => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : '',
 		);
 		/**
 		 * Filter the daily heartbeat payload.
@@ -138,8 +138,8 @@ class Vegax_AIS_Cloud {
 		if ( ! is_wp_error( $out ) ) {
 			Vegax_AIS_Settings::set_status(
 				array(
-					'last_sync'      => time(),
-					'product_count'  => isset( $payload['product_total'] ) ? (int) $payload['product_total'] : 0,
+					'last_sync'     => time(),
+					'product_count' => isset( $payload['product_total'] ) ? (int) $payload['product_total'] : 0,
 				)
 			);
 		}
@@ -164,15 +164,15 @@ class Vegax_AIS_Cloud {
 			return;
 		}
 		$event = array(
-			'store'      => Vegax_AIS_Settings::store_id(),
-			'ts'         => time(),
-			'event'      => 'order_status_changed',
-			'order'      => Vegax_AIS_Orders::public_summary( $order ),
-			'customer'   => array(
+			'store'    => Vegax_AIS_Settings::store_id(),
+			'ts'       => time(),
+			'event'    => 'order_status_changed',
+			'order'    => Vegax_AIS_Orders::public_summary( $order ),
+			'customer' => array(
 				'email_hash' => hash( 'sha256', strtolower( (string) $order->get_billing_email() ) ),
 			),
-			'from'       => (string) $from,
-			'to'         => (string) $to,
+			'from'     => (string) $from,
+			'to'       => (string) $to,
 		);
 		// The customer e-mail is only sent when the merchant explicitly allows it.
 		if ( (int) Vegax_AIS_Settings::get( 'share_customer_email' ) === 1 ) {

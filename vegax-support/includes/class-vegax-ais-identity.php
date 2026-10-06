@@ -94,7 +94,7 @@ class Vegax_AIS_Identity {
 		if ( false === $payload ) {
 			return '';
 		}
-		$part = rtrim( strtr( base64_encode( $payload ), '+/', '-_' ), '=' );
+		$part = rtrim( strtr( base64_encode( $payload ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- base64url-encoding our own signed JSON payload, not obfuscation.
 		$sig  = hash_hmac( 'sha256', 'identity|' . $part, $secret );
 		return $part . '.' . $sig;
 	}

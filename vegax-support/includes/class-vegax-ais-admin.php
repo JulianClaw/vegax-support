@@ -28,7 +28,7 @@ class Vegax_AIS_Admin {
 		add_action( 'admin_post_vegax_ais_disconnect', array( __CLASS__, 'handle_disconnect' ) );
 		// 06/10/2026 — Intercom lesson ①: OAuth-style connect (authorize page + callback + state).
 		add_action( 'admin_post_vegax_ais_oauth_start', array( __CLASS__, 'handle_oauth_start' ) );
-		// the one-click link from the office lands here with ?vegax_pair=<code>
+		// The one-click link from the office lands here with ?vegax_pair=<code>.
 		add_action( 'admin_init', array( __CLASS__, 'maybe_pair_from_url' ) );
 		// the OAuth callback returns here with ?vegax_oauth_cb=1&code=..&state=..
 		add_action( 'admin_init', array( __CLASS__, 'maybe_oauth_callback' ) );
@@ -96,15 +96,18 @@ class Vegax_AIS_Admin {
 			$patch['brand_color'] = '#07A87F';
 		}
 		Vegax_AIS_Settings::update( $patch );
-		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE, 'vegax_msg' => 'saved' ), admin_url( 'admin.php' ) ) );
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'      => self::PAGE,
+					'vegax_msg' => 'saved',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
 		exit;
 	}
 
-	/**
-	 * Push a catalogue sync now.
-	 *
-	 * @return void
-	 */
 	/**
 	 * Redeem a one-time pairing code for this store's credentials (01/10/2026).
 	 *
@@ -118,7 +121,10 @@ class Vegax_AIS_Admin {
 	public static function pair( $code ) {
 		$code = trim( (string) $code );
 		if ( '' === $code ) {
-			return array( 'ok' => false, 'message' => __( 'No pairing code was supplied.', 'vegax-support' ) );
+			return array(
+				'ok'      => false,
+				'message' => __( 'No pairing code was supplied.', 'vegax-support' ),
+			);
 		}
 		return self::redeem(
 			'/api/woo/pair',
@@ -146,12 +152,18 @@ class Vegax_AIS_Admin {
 			$api . $path,
 			array(
 				'timeout' => 25,
-				'headers' => array( 'Content-Type' => 'application/json', 'Accept' => 'application/json' ),
+				'headers' => array(
+					'Content-Type' => 'application/json',
+					'Accept'       => 'application/json',
+				),
 				'body'    => wp_json_encode( $payload ),
 			)
 		);
 		if ( is_wp_error( $resp ) ) {
-			return array( 'ok' => false, 'message' => $resp->get_error_message() );
+			return array(
+				'ok'      => false,
+				'message' => $resp->get_error_message(),
+			);
 		}
 		$http = (int) wp_remote_retrieve_response_code( $resp );
 		$body = json_decode( (string) wp_remote_retrieve_body( $resp ), true );
@@ -160,7 +172,10 @@ class Vegax_AIS_Admin {
 				? (string) $body['detail']
 				/* translators: %d: HTTP status code. */
 				: sprintf( __( 'Vegax answered HTTP %d', 'vegax-support' ), $http );
-			return array( 'ok' => false, 'message' => $why );
+			return array(
+				'ok'      => false,
+				'message' => $why,
+			);
 		}
 
 		$saved = get_option( VEGAX_AIS_OPTION, array() );
@@ -196,7 +211,7 @@ class Vegax_AIS_Admin {
 		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
-		$code = isset( $_GET['vegax_pair'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_pair'] ) ) : '';
+		$code = isset( $_GET['vegax_pair'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_pair'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only one-click pairing link; the single-use code is validated server-side in pair().
 		if ( '' === $code ) {
 			return;
 		}
@@ -270,11 +285,11 @@ class Vegax_AIS_Admin {
 		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
-		if ( ! isset( $_GET['vegax_oauth_cb'] ) ) {
+		if ( ! isset( $_GET['vegax_oauth_cb'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- OAuth callback; CSRF is covered by the constant-time state check below.
 			return;
 		}
-		$code  = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
-		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+		$code  = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- OAuth callback; CSRF is covered by the constant-time state check below.
+		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- OAuth callback; CSRF is covered by the constant-time state check below.
 		$want  = (string) get_transient( 'vegax_ais_oauth_state' );
 		delete_transient( 'vegax_ais_oauth_state' );
 
@@ -336,7 +351,15 @@ class Vegax_AIS_Admin {
 			update_option( VEGAX_AIS_OPTION, $saved );
 		}
 		Vegax_AIS_Settings::set_status( array() );
-		wp_safe_redirect( add_query_arg( array( 'page' => Vegax_AIS_Admin::PAGE, 'vegax_msg' => 'disconnected' ), admin_url( 'admin.php' ) ) );
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'      => self::PAGE,
+					'vegax_msg' => 'disconnected',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
 		exit;
 	}
 
@@ -349,11 +372,24 @@ class Vegax_AIS_Admin {
 		return admin_url( 'admin.php?page=' . self::PAGE );
 	}
 
+	/**
+	 * Push a catalogue sync now (form handler).
+	 *
+	 * @return void
+	 */
 	public static function handle_sync() {
 		self::guard( 'vegax_ais_sync' );
 		$out = Vegax_AIS_Cloud::send_knowledge();
 		$msg = is_wp_error( $out ) ? 'error' : 'synced';
-		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE, 'vegax_msg' => $msg ), admin_url( 'admin.php' ) ) );
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'      => self::PAGE,
+					'vegax_msg' => $msg,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
 		exit;
 	}
 
@@ -366,7 +402,15 @@ class Vegax_AIS_Admin {
 		self::guard( 'vegax_ais_test' );
 		$out = Vegax_AIS_Cloud::send_heartbeat();
 		$msg = is_wp_error( $out ) ? 'error' : 'connected';
-		wp_safe_redirect( add_query_arg( array( 'page' => self::PAGE, 'vegax_msg' => $msg ), admin_url( 'admin.php' ) ) );
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'      => self::PAGE,
+					'vegax_msg' => $msg,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
 		exit;
 	}
 
@@ -379,18 +423,18 @@ class Vegax_AIS_Admin {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
-		$s      = Vegax_AIS_Settings::all();
-		$status = Vegax_AIS_Settings::status();
-		$msg    = isset( $_GET['vegax_msg'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_msg'] ) ) : '';
+		$s         = Vegax_AIS_Settings::all();
+		$status    = Vegax_AIS_Settings::status();
+		$msg       = isset( $_GET['vegax_msg'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_msg'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only notice key, whitelisted against $notes and escaped before output.
 		$pair_note = (string) get_transient( 'vegax_ais_pair_msg' );
 		delete_transient( 'vegax_ais_pair_msg' );
-		$notes  = array(
-			'saved'     => __( 'Settings saved.', 'vegax-support' ),
-			'synced'    => __( 'Catalogue synced with Vegax.', 'vegax-support' ),
-			'connected' => __( 'Vegax answered the test connection.', 'vegax-support' ),
-			'error'     => __( 'Vegax could not be reached - check the token/secret and the API address.', 'vegax-support' ),
-			'paired'     => __( 'Connected in one click - the widget is live on your store.', 'vegax-support' ),
-			'pair_error' => __( 'The pairing link could not be used - ask the office for a fresh one.', 'vegax-support' ),
+		$notes = array(
+			'saved'        => __( 'Settings saved.', 'vegax-support' ),
+			'synced'       => __( 'Catalogue synced with Vegax.', 'vegax-support' ),
+			'connected'    => __( 'Vegax answered the test connection.', 'vegax-support' ),
+			'error'        => __( 'Vegax could not be reached - check the token/secret and the API address.', 'vegax-support' ),
+			'paired'       => __( 'Connected in one click - the widget is live on your store.', 'vegax-support' ),
+			'pair_error'   => __( 'The pairing link could not be used - ask the office for a fresh one.', 'vegax-support' ),
 			'disconnected' => __( 'Disconnected from Vegax. The widget has been removed and data sharing has stopped.', 'vegax-support' ),
 		);
 		?>
@@ -401,7 +445,7 @@ class Vegax_AIS_Admin {
 				<div class="notice <?php echo 'error' === $msg ? 'notice-error' : 'notice-success'; ?> is-dismissible">
 					<p><?php echo esc_html( $notes[ $msg ] ); ?></p>
 				</div>
-			<?php if ( '' !== $pair_note ) : ?>
+				<?php if ( '' !== $pair_note ) : ?>
 				<div class="notice <?php echo 'pair_error' === $msg ? 'notice-error' : 'notice-success'; ?> is-dismissible">
 					<p><?php echo esc_html( $pair_note ); ?></p>
 				</div>

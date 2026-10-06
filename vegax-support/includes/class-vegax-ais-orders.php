@@ -65,10 +65,10 @@ class Vegax_AIS_Orders {
 					continue;
 				}
 				$items[] = array(
-					'number'         => isset( $row['tracking_number'] ) ? (string) $row['tracking_number'] : '',
-					'provider'       => isset( $row['tracking_provider'] ) ? (string) $row['tracking_provider'] : '',
-					'url'            => isset( $row['custom_tracking_link'] ) ? (string) $row['custom_tracking_link'] : '',
-					'date_shipped'   => isset( $row['date_shipped'] ) ? (string) $row['date_shipped'] : '',
+					'number'       => isset( $row['tracking_number'] ) ? (string) $row['tracking_number'] : '',
+					'provider'     => isset( $row['tracking_provider'] ) ? (string) $row['tracking_provider'] : '',
+					'url'          => isset( $row['custom_tracking_link'] ) ? (string) $row['custom_tracking_link'] : '',
+					'date_shipped' => isset( $row['date_shipped'] ) ? (string) $row['date_shipped'] : '',
 				);
 			}
 		}
@@ -151,7 +151,7 @@ class Vegax_AIS_Orders {
 				'type'          => 'shop_order',
 			)
 		);
-		$out = array();
+		$out    = array();
 		foreach ( $orders as $order ) {
 			$out[] = self::public_summary( $order );
 		}
@@ -181,9 +181,9 @@ class Vegax_AIS_Orders {
 		if ( function_exists( 'wc_get_orders' ) ) {
 			$found = wc_get_orders(
 				array(
-					'limit'        => 1,
-					'type'         => 'shop_order',
-					'meta_query'   => array(
+					'limit'      => 1,
+					'type'       => 'shop_order',
+					'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- resolves an order by its custom order-number meta on a signed admin lookup; no CRUD alternative exists.
 						array(
 							'key'   => '_order_number',
 							'value' => $needle,

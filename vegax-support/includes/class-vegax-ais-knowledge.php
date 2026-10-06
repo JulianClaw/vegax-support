@@ -96,12 +96,6 @@ class Vegax_AIS_Knowledge {
 	}
 
 	/**
-	 * Map one WC_Product to the flat shape Vegax expects.
-	 *
-	 * @param WC_Product $product Product.
-	 * @return array
-	 */
-	/**
 	 * Product attributes as {name, options} - the specs a shopper actually asks about
 	 * ("what is the wattage?", "what size is it?").
 	 *
@@ -145,12 +139,21 @@ class Vegax_AIS_Knowledge {
 				}
 			}
 			if ( $clean ) {
-				$out[] = array( 'name' => $name, 'options' => $clean );
+				$out[] = array(
+					'name'    => $name,
+					'options' => $clean,
+				);
 			}
 		}
 		return $out;
 	}
 
+	/**
+	 * Map one WC_Product to the flat shape Vegax expects.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return array
+	 */
 	protected static function map_product( $product ) {
 		$cats  = array();
 		$terms = get_the_terms( $product->get_id(), 'product_cat' );
@@ -174,7 +177,7 @@ class Vegax_AIS_Knowledge {
 		// "do you have it in medium?" had no data behind it. Send each variation's choices with its own
 		// price and stock. Capped at 12 and the real total is sent alongside, so the assistant can see
 		// the list was truncated instead of quietly assuming it is complete.
-		$variations     = array();
+		$variations      = array();
 		$variation_total = 0;
 		if ( $product->is_type( 'variable' ) ) {
 			$children        = $product->get_children();
@@ -259,7 +262,10 @@ class Vegax_AIS_Knowledge {
 			if ( '' === $q || '' === $a ) {
 				continue;
 			}
-			$out[] = array( 'q' => mb_substr( $q, 0, 300 ), 'a' => mb_substr( $a, 0, 1200 ) );
+			$out[] = array(
+				'q' => mb_substr( $q, 0, 300 ),
+				'a' => mb_substr( $a, 0, 1200 ),
+			);
 		}
 		return array_slice( $out, 0, 60 );
 	}
@@ -274,7 +280,7 @@ class Vegax_AIS_Knowledge {
 		$raw = (string) ( $s['custom_rules_text'] ?? '' );
 		$out = array();
 		foreach ( preg_split( "/\r\n|\r|\n/", $raw ) as $line ) {
-			$line = trim( ltrim( trim( $line ), "-*" ) );
+			$line = trim( ltrim( trim( $line ), '-*' ) );
 			if ( '' !== $line ) {
 				$out[] = mb_substr( $line, 0, 300 );
 			}

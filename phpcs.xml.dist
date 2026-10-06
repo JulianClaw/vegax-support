@@ -16,9 +16,25 @@
 		<exclude name="WordPress.Files.FileName"/>
 	</rule>
 
+	<!--
+		WooCommerce registers the "manage_woocommerce" capability at runtime, so the
+		sniff cannot see it in our source. Declaring it here (the sniff's own documented
+		mechanism) is not a blanket suppression: it only tells the capability sniff that
+		this ONE capability is real, and it is the only capability the plugin uses.
+	-->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" type="array" value="vegax-support"/>
+			<property name="text_domain" type="array">
+				<element value="vegax-support"/>
+			</property>
 		</properties>
 	</rule>
 
