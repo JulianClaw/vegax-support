@@ -470,7 +470,7 @@ class Vegax_AIS_Admin {
 		// only tells the administrator a value is already stored.
 		$vegax_mask   = '••••••••';
 		$pending_code = (string) get_transient( 'vegax_ais_pair_pending' );
-		$notes = array(
+		$notes        = array(
 			'saved'        => __( 'Settings saved.', 'vegax-support' ),
 			'synced'       => __( 'Catalogue synced with Vegax.', 'vegax-support' ),
 			'connected'    => __( 'Vegax answered the test connection.', 'vegax-support' ),
