@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 if ( ! defined( 'VEGAX_AIS_VERSION' ) ) {
-	define( 'VEGAX_AIS_VERSION', '1.0.8' );
+	define( 'VEGAX_AIS_VERSION', '1.0.9' );
 }
 if ( ! defined( 'VEGAX_AIS_OPTION' ) ) {
 	define( 'VEGAX_AIS_OPTION', 'vegax_ais_settings' );

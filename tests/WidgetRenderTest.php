@@ -13,6 +13,7 @@ class WidgetRenderTest extends TestCase {
 		return array_merge(
 			array(
 				'widget_enabled'        => 1,
+				'consent_sync'          => 1,
 				'store_token'           => 'tok',
 				'store_secret'          => 'secret',
 				'agent_name'            => 'Vegax Support',
@@ -29,6 +30,14 @@ class WidgetRenderTest extends TestCase {
 		return ob_get_clean();
 	}
 
+	public function test_no_tag_when_consent_withdrawn() {
+		// 13/10/2026 — the widget tag is itself a request to the Vegax service, so withdrawing
+		// data-sharing consent must remove it from the storefront even while connected.
+		vegax_test_reset( $this->connected( array( 'consent_sync' => 0 ) ) );
+		$this->assertSame( '', $this->rendered() );
+		$this->assertFalse( Vegax_AIS_Widget::should_render() );
+	}
+
 	public function test_no_tag_when_not_connected() {
 		vegax_test_reset( array( 'widget_enabled' => 1, 'store_token' => '', 'store_secret' => '' ) );
 		$this->assertSame( '', $this->rendered() );
@@ -39,7 +48,7 @@ class WidgetRenderTest extends TestCase {
 		$html = $this->rendered();
 		$this->assertStringContainsString( 'widget.js', $html );
 		$this->assertStringContainsString( 'data-store="shop.example.com"', $html );
-		$this->assertStringContainsString( 'data-plugin="vegax-support/1.0.8"', $html );
+		$this->assertStringContainsString( 'data-plugin="vegax-support/1.0.9"', $html );
 	}
 
 	public function test_no_identity_attribute_when_switch_off() {

@@ -137,6 +137,14 @@ class TokenTest extends TestCase {
 		$this->assertTrue( Vegax_AIS_Tokens::failed() );
 	}
 
+	public function test_refresh_does_not_call_network_when_store_not_connected() {
+		// 13/10/2026 — a leftover refresh token must never keep posting to the service after
+		// the store credentials are gone: no credentials ⇒ no request at all.
+		vegax_test_reset( $this->options( array( 'store_token' => '', 'store_secret' => '', 'refresh_token' => 'vgxt_left' ) ) );
+		$this->assertFalse( Vegax_AIS_Tokens::refresh() );
+		$this->assertSame( array(), $GLOBALS['vegax_test_http'], 'Not connected ⇒ no HTTP call may be queued/used.' );
+	}
+
 	public function test_refresh_without_pair_does_not_call_network() {
 		vegax_test_reset( $this->options() );
 		// No HTTP queued: if refresh() wrongly called the network it would set failed() via WP_Error.

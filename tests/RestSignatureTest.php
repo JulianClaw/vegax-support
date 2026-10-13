@@ -25,6 +25,7 @@ class RestSignatureTest extends TestCase {
 			array(
 				'store_token'  => 'tok-abc',
 				'store_secret' => self::SECRET,
+				'consent_sync' => 1,
 			),
 			$extra
 		);
@@ -101,6 +102,33 @@ class RestSignatureTest extends TestCase {
 		$check = Vegax_AIS_Rest_Testable::check( $req, 'order-lookup', 'buyer@example.com' );
 		$this->assertInstanceOf( WP_Error::class, $check );
 		$this->assertSame( 'vegax_not_connected', $check->get_error_code() );
+	}
+
+	private function signed_knowledge_request() {
+		$ts    = (string) time();
+		$store = Vegax_AIS_Settings::store_id();
+		$sig   = hash_hmac( 'sha256', Vegax_AIS_Rest::canonical( 'knowledge', $store, '', '', $ts ), self::SECRET );
+		return new WP_REST_Request( array( 'ts' => $ts, 'sig' => $sig, 'store' => $store ) );
+	}
+
+	public function test_knowledge_route_serves_data_when_consent_given() {
+		vegax_test_reset( $this->options() );
+		$this->assertTrue( Vegax_AIS_Rest::permission_knowledge( $this->signed_knowledge_request() ) );
+	}
+
+	public function test_knowledge_route_refuses_when_consent_withdrawn() {
+		// 13/10/2026 — the catalogue is only served while data sharing is switched on.
+		vegax_test_reset( $this->options( array( 'consent_sync' => 0 ) ) );
+		$check = Vegax_AIS_Rest::permission_knowledge( $this->signed_knowledge_request() );
+		$this->assertInstanceOf( WP_Error::class, $check );
+		$this->assertSame( 'vegax_no_consent', $check->get_error_code() );
+	}
+
+	public function test_order_lookup_route_refuses_when_consent_withdrawn() {
+		vegax_test_reset( $this->options( array( 'consent_sync' => 0, 'order_lookup_enabled' => 1 ) ) );
+		$check = Vegax_AIS_Rest::permission_order_lookup( $this->signed_request() );
+		$this->assertInstanceOf( WP_Error::class, $check );
+		$this->assertSame( 'vegax_no_consent', $check->get_error_code() );
 	}
 
 	public function test_non_numeric_timestamp_is_refused() {
