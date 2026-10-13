@@ -4,7 +4,7 @@ Tags: woocommerce, customer support, live chat, order tracking, chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
@@ -80,6 +80,12 @@ At [vegaxclaw.com/woocommerce](https://vegaxclaw.com/woocommerce).
 Yes, it is GPL-2.0-or-later. The Vegax service is a paid subscription; the plugin itself is never locked or broken when the subscription expires.
 
 == Changelog ==
+
+= 1.0.9 =
+
+* Security: the `/health` REST route is now restricted to WordPress administrators (`manage_options`). It reports plugin, WooCommerce, WordPress and PHP versions plus connection and synchronisation state, so it must not be readable by an anonymous visitor. Nothing in the Vegax service called that route, so no functionality changed.
+* The signature check for the `/order-lookup` and `/knowledge` routes now runs in each route's `permission_callback` (the documented place for authorisation) instead of only inside the callback body, so every route declares its access rule explicitly.
+
 
 = 1.0.8 =
 

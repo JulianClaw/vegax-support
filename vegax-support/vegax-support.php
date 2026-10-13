@@ -3,7 +3,7 @@
  * Plugin Name:       Vegax Support
  * Plugin URI:        https://vegaxclaw.com/woocommerce
  * Description:       Customer support for WooCommerce. Answers product, shipping and returns questions from your own catalogue, and lets a signed Vegax service look up a customer's own order status (WISMO) without exporting your customer data.
- * Version:          1.0.8
+ * Version:          1.0.9
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Vegax (NCK Group LLC)
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VEGAX_AIS_VERSION', '1.0.8' );
+define( 'VEGAX_AIS_VERSION', '1.0.9' );
 define( 'VEGAX_AIS_FILE', __FILE__ );
 define( 'VEGAX_AIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VEGAX_AIS_URL', plugin_dir_url( __FILE__ ) );

@@ -3,7 +3,7 @@
  * Expiring access token + refresh token handling for the Woo connect.
  *
  * The Vegax service hands the plugin a SHORT-LIVED access token together with a
- * longer-lived refresh token (the same shape Shopify uses for its Admin API). The
+ * longer-lived refresh token (the same shape hosted commerce Admin APIs use). The
  * plugin stores BOTH, reads `expires_in` from the service response (never a hard-coded
  * lifetime) and renews the pair from a WordPress background job BEFORE it expires — so
  * a storefront request never waits on the network and no visitor ever triggers a refresh.

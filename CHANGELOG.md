@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.9 — 2026-10-13
+- **Bảo mật (theo kết luận review của WordPress.org, 08/10/2026)**: route REST `/wp-json/vegax/v1/health`
+  trước đây để `permission_callback => '__return_true'` và trả về phiên bản plugin/WooCommerce/WordPress/PHP,
+  store id, trạng thái kết nối + đồng bộ ⇒ **bất kỳ ai biết URL cũng đọc được**. Nay **chỉ quản trị viên**
+  (`current_user_can( 'manage_options' )`). Dịch vụ Vegax **không gọi** route này ⇒ không mất chức năng.
+- **Kiểm chữ ký chuyển vào `permission_callback`** cho 2 route còn lại (`/order-lookup`, `/knowledge`):
+  trước đây `verify()` nằm trong thân callback (vẫn chặn đúng, nhưng sai chỗ theo chuẩn của WordPress) ⇒ nay
+  mỗi route khai báo rõ luật truy cập ngay tại `permission_callback`.
+- **Bằng chứng 2 chiều trên site test thật** (woo-test / shop-test, PHP 8.2, Woo 11.1.2):
+  TRƯỚC: khách vãng lai `GET /health` → **200** + rò dữ liệu; SAU: khách → **401 rest_forbidden**, quản trị → **200**;
+  `/order-lookup` chữ ký đúng → **200** (có dữ liệu), chữ ký sai → **403**; `/knowledge` chữ ký đúng → **200**.
+  `plugin check` → **No errors found**; `php -l` 12/12 file sạch.
+- Dọn 2 chú thích trong mã có nhắc tên nền tảng khác (cổng nội bộ: plugin Woo phải 0 lần xuất hiện).
+
 ## 1.0.8 — 2026-10-06
 - **Token có hạn + tự làm mới** (bắt chước Shopify): khi kết nối, dịch vụ phát thêm **cặp**
   `access_token` (ngắn) + `refresh_token` (dài). Plugin **đọc `expires_in` từ phản hồi** (KHÔNG gõ cứng),

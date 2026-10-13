@@ -1,10 +1,16 @@
 <?php
 /**
- * Public REST routes used by the Vegax service.
+ * REST routes used by the Vegax service.
  *
- * Both routes are signature protected: the caller must prove possession of the
- * store secret (HMAC-SHA256 over a canonical string including the timestamp),
- * so simply knowing the site URL is not enough to read anything.
+ * Access model (revised 1.0.9 after the WordPress.org review):
+ * - /health          : admin only (current_user_can('manage_options')). It reports
+ *                      versions, connection state and sync state, so it must never
+ *                      be readable by an anonymous visitor.
+ * - /order-lookup    : signature protected. The caller must prove possession of the
+ * - /knowledge         store secret (HMAC-SHA256 over a canonical string including
+ *                      the timestamp), so knowing the site URL is not enough.
+ * The signature check lives in the route's permission_callback (the documented
+ * place for authorisation), not only inside the callback body.
  *
  * @package Vegax_Support
  */
@@ -41,7 +47,7 @@ class Vegax_AIS_Rest {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( __CLASS__, 'health' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( __CLASS__, 'can_manage_options' ),
 			)
 		);
 		register_rest_route(
@@ -50,7 +56,7 @@ class Vegax_AIS_Rest {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( __CLASS__, 'order_lookup' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( __CLASS__, 'permission_order_lookup' ),
 				'args'                => array(
 					'email' => array( 'required' => true ),
 					'ts'    => array( 'required' => true ),
@@ -64,7 +70,7 @@ class Vegax_AIS_Rest {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( __CLASS__, 'knowledge' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( __CLASS__, 'permission_knowledge' ),
 				'args'                => array(
 					'ts'  => array( 'required' => true ),
 					'sig' => array( 'required' => true ),
@@ -94,6 +100,47 @@ class Vegax_AIS_Rest {
 				(string) $ts,
 			)
 		);
+	}
+
+	/**
+	 * Permission callback for /health: WordPress administrators only.
+	 *
+	 * The endpoint reports plugin/WooCommerce/WordPress/PHP versions, connection
+	 * state and synchronisation state, so anonymous access is not acceptable
+	 * (WordPress.org review, 1.0.9).
+	 *
+	 * @return bool
+	 */
+	public static function can_manage_options() {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Permission callback for /order-lookup: enabled flag + HMAC signature.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return true|WP_Error
+	 */
+	public static function permission_order_lookup( $request ) {
+		if ( (int) Vegax_AIS_Settings::get( 'order_lookup_enabled' ) !== 1 ) {
+			return new WP_Error( 'vegax_disabled', 'order_lookup_disabled', array( 'status' => 403 ) );
+		}
+		return self::verify(
+			$request,
+			'order-lookup',
+			(string) $request->get_param( 'email' ),
+			(string) $request->get_param( 'order' )
+		);
+	}
+
+	/**
+	 * Permission callback for /knowledge: HMAC signature.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return true|WP_Error
+	 */
+	public static function permission_knowledge( $request ) {
+		return self::verify( $request, 'knowledge' );
 	}
 
 	/**
@@ -182,16 +229,11 @@ class Vegax_AIS_Rest {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function order_lookup( $request ) {
-		if ( (int) Vegax_AIS_Settings::get( 'order_lookup_enabled' ) !== 1 ) {
-			return new WP_Error( 'vegax_disabled', 'order_lookup_disabled', array( 'status' => 403 ) );
-		}
+		// Authorisation (enabled flag + HMAC signature) already happened in
+		// permission_order_lookup(), which WordPress runs before this callback.
 		$email = (string) $request->get_param( 'email' );
 		$order = (string) $request->get_param( 'order' );
 
-		$check = self::verify( $request, 'order-lookup', $email, $order );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
 		if ( self::rate_limited( 'lookup', self::RATE_LIMIT_MAX ) ) {
 			return new WP_Error( 'vegax_rate', 'rate_limited', array( 'status' => 429 ) );
 		}
@@ -215,10 +257,7 @@ class Vegax_AIS_Rest {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function knowledge( $request ) {
-		$check = self::verify( $request, 'knowledge' );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
+		// Authorisation (HMAC signature) already happened in permission_knowledge().
 		if ( self::rate_limited( 'knowledge', 12 ) ) {
 			return new WP_Error( 'vegax_rate', 'rate_limited', array( 'status' => 429 ) );
 		}

@@ -22,7 +22,7 @@ class Vegax_AIS_Settings {
 			'api_base'                 => VEGAX_AIS_API_DEFAULT,
 			'store_token'              => '',
 			'store_secret'             => '',
-			// 06/10/2026 — expiring token pair (Shopify-style). Empty ⇒ the store uses the
+			// 06/10/2026 — expiring token pair (rotating access + refresh). Empty ⇒ the store uses the
 			// static store_token/store_secret path exactly as before (backward compatible).
 			'access_token'             => '',
 			'refresh_token'            => '',
