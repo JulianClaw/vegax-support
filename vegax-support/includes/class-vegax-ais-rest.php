@@ -253,10 +253,12 @@ class Vegax_AIS_Rest {
 	/**
 	 * GET /knowledge - pull fallback when a pushed sync was missed.
 	 *
-	 * @param WP_REST_Request $request Request.
+	 * The request object is not needed here: authorisation (HMAC signature) is
+	 * handled entirely by permission_knowledge(), which WordPress runs first.
+	 *
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public static function knowledge( $request ) {
+	public static function knowledge() {
 		// Authorisation (HMAC signature) already happened in permission_knowledge().
 		if ( self::rate_limited( 'knowledge', 12 ) ) {
 			return new WP_Error( 'vegax_rate', 'rate_limited', array( 'status' => 429 ) );
