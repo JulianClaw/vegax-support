@@ -88,10 +88,6 @@ add_action(
 );
 
 /**
- * Boot the plugin once WooCommerce is available.
- */
-
-/**
  * Privacy policy content (suggested text for the admin's privacy page).
  * The GDPR requires sites to explain what personal data plugins send.
  */

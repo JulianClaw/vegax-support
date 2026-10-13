@@ -37,7 +37,7 @@ This plugin relies on the Vegax service, a third-party hosted service, to genera
 
 **What the plugin sends and when**
 
-Every request tells the service which store it belongs to. The pairing, connection and token-refresh requests also say which plugin version is calling, and each order-status event carries its own event id and timestamp, so the service can tell one request from another. None of those fields adds personal data.
+Each request identifies the store it belongs to &mdash; the two connection requests use the site URL instead, since the store is not connected yet. The catalogue and heartbeat payloads also carry the plugin version and the time they were sent, and every order-status event carries the time it was sent. None of those fields adds personal data.
 
 The plugin contacts the Vegax service in two situations. (1) When an administrator starts the connection &mdash; pressing **Connect with Vegax**, or sending a one-time pairing code &mdash; the plugin asks the service for this store's credentials. That call is made by the administrator, through an action protected by a capability check and a nonce, and it is what the connection itself needs. (2) Once the store is connected **and** the data-sharing consent checkbox on the settings screen is ticked, the plugin sends the data listed below. Connecting ticks that box for you; untick it, or press **Disconnect**, and no request leaves your site any more (Disconnect also deletes the stored credentials and removes every scheduled job).
 
