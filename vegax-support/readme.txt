@@ -37,6 +37,8 @@ This plugin relies on the Vegax service, a third-party hosted service, to genera
 
 **What the plugin sends and when**
 
+Every payload also carries the plugin version and a timestamp, so the service can tell one request from another. Neither adds personal data.
+
 The plugin contacts the Vegax service in two situations. (1) When an administrator starts the connection &mdash; pressing **Connect with Vegax**, or sending a one-time pairing code &mdash; the plugin asks the service for this store's credentials. That call is made by the administrator, through an action protected by a capability check and a nonce, and it is what the connection itself needs. (2) Once the store is connected **and** the data-sharing consent checkbox on the settings screen is ticked, the plugin sends the data listed below. Connecting ticks that box for you; untick it, or press **Disconnect**, and no request leaves your site any more (Disconnect also deletes the stored credentials and removes every scheduled job).
 
 * **Catalogue sync** (separate from the heartbeat, triggered by an administrator or by the daily sync cron &mdash; never on heartbeat): product id, name, SKU, type, prices (regular, sale and current), on-sale flag, stock status, in-stock flag, stock quantity, categories, product link, image link, short description, attributes, weight, dimensions, variant data (options, price, stock), plus the store key, the product count and a site metadata block (site name, site URL, currency, locale, timezone, WooCommerce version, WordPress version, HPOS flag).
@@ -79,20 +81,35 @@ At [vegaxclaw.com/woocommerce](https://vegaxclaw.com/woocommerce).
 
 Yes, it is GPL-2.0-or-later. The Vegax service is a paid subscription; the plugin itself is never locked or broken when the subscription expires.
 
+== Developers ==
+
+The plugin exposes these filters, so a site can adapt the integration without editing the plugin:
+
+* `vegax_ais_widget_tag_attributes` &mdash; change the attributes printed on the chat widget tag.
+* `vegax_ais_widget_should_render` &mdash; decide whether the widget is printed on the current request.
+* `vegax_ais_widget_on_checkout` &mdash; print (or keep away from) the widget on the checkout page.
+* `vegax_ais_knowledge_product` &mdash; add, rename or drop fields for a product in the catalogue sync.
+* `vegax_ais_heartbeat_payload` &mdash; add or remove fields in the daily heartbeat.
+* `vegax_ais_order_event_payload` &mdash; add or remove fields in the order-status event.
+* `vegax_ais_tracking_items` &mdash; change the shipment tracking items read from an order.
+
 == Changelog ==
 
 = 1.0.9 =
 
 * Security: the `/health` REST route is now restricted to WordPress administrators (`manage_options`). It reports plugin, WooCommerce, WordPress and PHP versions plus connection and synchronisation state, so it must not be readable by an anonymous visitor. Nothing in the Vegax service called that route, so no functionality changed.
 * The signature check for the `/order-lookup` and `/knowledge` routes now runs in each route's `permission_callback` (the documented place for authorisation) instead of only inside the callback body, so every route declares its access rule explicitly.
+* The saved store token and secret are no longer printed back into the settings HTML. An empty field now means "keep the stored value", and **Disconnect** is the way to erase credentials, so a shop manager can no longer read the signing secret in the page source.
+* A pairing link received by URL no longer changes settings by itself: the code is only staged until the administrator confirms it with the nonce-protected Connect button.
+* **Disconnect** now deletes the stored credentials including the expiring-token pair, clears the connection status shown on the settings screen and removes **every** scheduled job; uninstalling the plugin removes every scheduled job as well. The jobs are created again automatically once the store is connected again, so a reconnect never leaves the store without token renewal.
+* Data sharing is now enforced on both directions of every path: the catalogue sync, the heartbeat, the token refresh and the storefront widget script stop when the consent box is unticked, and the signed `/order-lookup` and `/knowledge` routes refuse to serve data while consent is withdrawn. Connecting the store ticks the consent box; it is unticked on a fresh install and can be unticked at any time.
+* The readme's data lists were corrected to match the payloads the code actually sends.
+
 
 
 = 1.0.8 =
 
 * One-click connect: the **Connect with Vegax** button sends the merchant to a Vegax authorization page that names the store, then returns and connects the store automatically using a single-use, short-lived code together with an anti-forgery `state` value. The older paste-a-pairing-code path is kept for backward compatibility and keeps working unchanged.
-* Security hardening after an independent audit: the REST `/health` route is administrator-only; the signature check for `/order-lookup` and `/knowledge` now lives in each route's `permission_callback`; the saved store token and secret are no longer printed back into the settings HTML (leave the field empty to keep the stored value); a pairing link received by URL is only staged until the administrator confirms it with the nonce-protected Connect button, so a link alone can never change settings.
-* Disconnect now also deletes the expiring-token pair and removes the refresh job, and uninstall removes every scheduled job, so "disconnect" really does stop all outbound traffic.
-* Data sharing is now enforced on every outbound path (catalogue sync, heartbeat, token refresh and the storefront widget script), not only on the sync call.
 * Added an optional **Identity verification** switch (off by default). When on, a signed-in customer is tagged with a short-lived signed token so a chat can never be answered for the wrong person (for example when a cache reuses a conversation).
 * Data sharing is now strictly opt-in: the consent checkbox is unticked by default on a fresh install, and the plugin sends nothing to the Vegax service until the administrator ticks it. (1.0.7 pre-ticked the box for the previous default.)
 * Unified the plugin name to a single identifier `vegax-support` everywhere: the plugin folder, the main file, the text domain, the readme and the `data-plugin` marker printed by the widget.

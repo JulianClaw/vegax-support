@@ -135,6 +135,12 @@ class Vegax_AIS_Tokens {
 		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
 			return false;
 		}
+		// Same rule as every other outbound path: a store that is not connected sends nothing.
+		// Without this, a leftover refresh token could keep posting to the service after the
+		// store credentials were removed.
+		if ( ! Vegax_AIS_Settings::is_connected() ) {
+			return false;
+		}
 		// Single-flight: if another tick is already refreshing, do nothing this round.
 		if ( get_transient( 'vegax_ais_refresh_lock' ) ) {
 			return false;

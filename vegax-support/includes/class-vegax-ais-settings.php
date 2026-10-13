@@ -162,6 +162,24 @@ class Vegax_AIS_Settings {
 	 * @param array $patch Key/value pairs.
 	 * @return void
 	 */
+	/**
+	 * Drop every stored status field (13/10/2026).
+	 *
+	 * Used when the store is disconnected, so a stale "last sync" / "last heartbeat" is never
+	 * shown for a store that is no longer connected.
+	 *
+	 * @return void
+	 */
+	public static function clear_status() {
+		update_option( 'vegax_ais_status', array() );
+	}
+
+	/**
+	 * Merge fields into the stored status.
+	 *
+	 * @param array $patch Fields to merge.
+	 * @return void
+	 */
 	public static function set_status( array $patch ) {
 		$status = self::status();
 		foreach ( $patch as $k => $v ) {

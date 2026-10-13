@@ -185,6 +185,11 @@ register_activation_hook(
 	__FILE__,
 	function () {
 		update_option( 'vegax_ais_version', VEGAX_AIS_VERSION );
+		// 13/10/2026 — the self-heal below schedules the jobs as soon as the store is
+		// connected, so activation does not schedule work a disconnected store cannot do.
+		if ( ! class_exists( 'Vegax_AIS_Settings' ) || ! Vegax_AIS_Settings::is_connected() ) {
+			return;
+		}
 		if ( ! wp_next_scheduled( 'vegax_ais_cron_heartbeat' ) ) {
 			wp_schedule_event( time() + 60, 'daily', 'vegax_ais_cron_heartbeat' );
 		}

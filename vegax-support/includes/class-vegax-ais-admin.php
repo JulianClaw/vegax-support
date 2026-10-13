@@ -388,7 +388,7 @@ class Vegax_AIS_Admin {
 		wp_clear_scheduled_hook( 'vegax_ais_cron_refresh' );
 		wp_clear_scheduled_hook( 'vegax_ais_cron_heartbeat' );
 		wp_clear_scheduled_hook( 'vegax_ais_cron_sync' );
-		Vegax_AIS_Settings::set_status( array() );
+		Vegax_AIS_Settings::clear_status();
 		wp_safe_redirect(
 			add_query_arg(
 				array(

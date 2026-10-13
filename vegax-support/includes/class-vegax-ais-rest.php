@@ -122,6 +122,12 @@ class Vegax_AIS_Rest {
 	 * @return true|WP_Error
 	 */
 	public static function permission_order_lookup( $request ) {
+		// 13/10/2026 — this route serves store data to the service, so it obeys the same
+		// data-sharing consent as the outbound calls: untick the box and the service can no
+		// longer pull order summaries, even with a valid signature.
+		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
+			return new WP_Error( 'vegax_no_consent', 'data_sharing_switched_off', array( 'status' => 403 ) );
+		}
 		if ( (int) Vegax_AIS_Settings::get( 'order_lookup_enabled' ) !== 1 ) {
 			return new WP_Error( 'vegax_disabled', 'order_lookup_disabled', array( 'status' => 403 ) );
 		}
@@ -140,6 +146,11 @@ class Vegax_AIS_Rest {
 	 * @return true|WP_Error
 	 */
 	public static function permission_knowledge( $request ) {
+		// 13/10/2026 — see permission_order_lookup(): the catalogue is only served while the
+		// administrator keeps the data-sharing consent ticked.
+		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
+			return new WP_Error( 'vegax_no_consent', 'data_sharing_switched_off', array( 'status' => 403 ) );
+		}
 		return self::verify( $request, 'knowledge' );
 	}
 
