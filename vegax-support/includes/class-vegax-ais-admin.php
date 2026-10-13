@@ -382,7 +382,12 @@ class Vegax_AIS_Admin {
 			update_option( VEGAX_AIS_OPTION, $saved );
 		}
 		delete_transient( 'vegax_ais_refresh_lock' );
+		// Every job this plugin schedules goes, so "disconnect" removes the scheduled jobs
+		// exactly as the readme says. The jobs come back on their own once the store is
+		// connected again (see the self-heal in vegax-support.php).
 		wp_clear_scheduled_hook( 'vegax_ais_cron_refresh' );
+		wp_clear_scheduled_hook( 'vegax_ais_cron_heartbeat' );
+		wp_clear_scheduled_hook( 'vegax_ais_cron_sync' );
 		Vegax_AIS_Settings::set_status( array() );
 		wp_safe_redirect(
 			add_query_arg(

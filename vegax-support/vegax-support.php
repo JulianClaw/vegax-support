@@ -153,6 +153,32 @@ add_filter(
 );
 
 /**
+ * Self-heal the background jobs (13/10/2026).
+ *
+ * The activation hook schedules them once, but a store can lose a job without ever being
+ * deactivated: a host that wipes cron events, or Disconnect followed by a reconnect. While
+ * the store is connected we make sure all three jobs exist; while it is disconnected we
+ * touch nothing, so Disconnect really does remove them.
+ */
+add_action(
+	'init',
+	function () {
+		if ( ! class_exists( 'Vegax_AIS_Settings' ) || ! Vegax_AIS_Settings::is_connected() ) {
+			return;
+		}
+		if ( ! wp_next_scheduled( 'vegax_ais_cron_heartbeat' ) ) {
+			wp_schedule_event( time() + 60, 'daily', 'vegax_ais_cron_heartbeat' );
+		}
+		if ( ! wp_next_scheduled( 'vegax_ais_cron_sync' ) ) {
+			wp_schedule_event( time() + 300, 'daily', 'vegax_ais_cron_sync' );
+		}
+		if ( ! wp_next_scheduled( 'vegax_ais_cron_refresh' ) ) {
+			wp_schedule_event( time() + 300, 'vegax_ais_15min', 'vegax_ais_cron_refresh' );
+		}
+	}
+);
+
+/**
  * Activation: remember the version and schedule the background jobs.
  */
 register_activation_hook(

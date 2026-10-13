@@ -37,7 +37,7 @@ This plugin relies on the Vegax service, a third-party hosted service, to genera
 
 **What the plugin sends and when**
 
-The plugin contacts the Vegax service only while the store is connected **and** the data-sharing consent checkbox is ticked. Connecting the store (with the **Connect with Vegax** button, or with a one-time pairing code) ticks that box for you; untick it, or press **Disconnect**, and no request leaves your site any more (the Disconnect button also deletes the stored credentials and removes the scheduled jobs).
+The plugin contacts the Vegax service in two situations. (1) When an administrator starts the connection &mdash; pressing **Connect with Vegax**, or sending a one-time pairing code &mdash; the plugin asks the service for this store's credentials. That call is made by the administrator, through an action protected by a capability check and a nonce, and it is what the connection itself needs. (2) Once the store is connected **and** the data-sharing consent checkbox on the settings screen is ticked, the plugin sends the data listed below. Connecting ticks that box for you; untick it, or press **Disconnect**, and no request leaves your site any more (Disconnect also deletes the stored credentials and removes every scheduled job).
 
 * **Catalogue sync** (separate from the heartbeat, triggered by an administrator or by the daily sync cron &mdash; never on heartbeat): product id, name, SKU, type, prices (regular, sale and current), on-sale flag, stock status, in-stock flag, stock quantity, categories, product link, image link, short description, attributes, weight, dimensions, variant data (options, price, stock), plus the store key, the product count and a site metadata block (site name, site URL, currency, locale, timezone, WooCommerce version, WordPress version, HPOS flag).
 * **Policy pages and custom rules** (shipping, returns, warranty and similar&ndash; named pages found on your own site), plus the FAQs and store rules the administrator types into the settings, as plain text: sent on the same sync.
@@ -51,7 +51,7 @@ The storefront chat widget script is loaded from the Vegax service so replies ca
 
 **What is never sent**
 
-Customer names, addresses, phone numbers, order addresses and payment details are never transmitted. Your WordPress or WooCommerce credentials are never transmitted. No order data leaves your store in bulk &mdash; only per-order responses to a customer who provides their own e-mail and order number.
+Customer names, addresses, phone numbers, order addresses and payment details are never transmitted. Your WordPress or WooCommerce credentials are never transmitted. No order data leaves your store in bulk: an order lookup answers either the single order a customer identified (when they supply the order number) or, when they only give the e-mail address they ordered with, at most the five most recent orders for that address.
 
 == Installation ==
 
