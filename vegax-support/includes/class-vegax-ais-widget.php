@@ -39,6 +39,12 @@ class Vegax_AIS_Widget {
 		if ( ! Vegax_AIS_Settings::is_connected() ) {
 			return false;
 		}
+		// Guideline 7 (13/10/2026): printing the widget tag is itself a request to the Vegax
+		// service, so it is only printed while the administrator keeps the data-sharing
+		// consent ticked. Unticking the box stops every outbound request within one page view.
+		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
+			return false;
+		}
 		if ( is_admin() || wp_doing_ajax() ) {
 			return false;
 		}

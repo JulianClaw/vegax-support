@@ -130,6 +130,11 @@ class Vegax_AIS_Tokens {
 		if ( ! self::has_pair() ) {
 			return false;
 		}
+		// Guideline 7 (13/10/2026): a refresh is an outbound request, so it obeys consent too.
+		// The pair is KEPT — ticking the box again resumes refreshing without reconnecting.
+		if ( (int) Vegax_AIS_Settings::get( 'consent_sync' ) !== 1 ) {
+			return false;
+		}
 		// Single-flight: if another tick is already refreshing, do nothing this round.
 		if ( get_transient( 'vegax_ais_refresh_lock' ) ) {
 			return false;

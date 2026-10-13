@@ -95,6 +95,16 @@ class Vegax_AIS_Admin {
 		if ( '' === $patch['brand_color'] ) {
 			$patch['brand_color'] = '#07A87F';
 		}
+		// 13/10/2026 — the credential fields no longer print the saved value back into the HTML
+		// (any shop_manager could read the secret in the page source). An empty field therefore
+		// means "keep the saved value"; Disconnect is the way to erase credentials.
+		$current = get_option( VEGAX_AIS_OPTION, array() );
+		$current = is_array( $current ) ? $current : array();
+		foreach ( array( 'store_token', 'store_secret' ) as $vegax_key ) {
+			if ( '' === $patch[ $vegax_key ] && ! empty( $current[ $vegax_key ] ) ) {
+				$patch[ $vegax_key ] = (string) $current[ $vegax_key ];
+			}
+		}
 		Vegax_AIS_Settings::update( $patch );
 		wp_safe_redirect(
 			add_query_arg(
@@ -186,6 +196,11 @@ class Vegax_AIS_Admin {
 		$saved['store_secret']      = (string) $body['store_secret'];
 		$saved['widget_enabled']    = 1;
 		$saved['store_id_override'] = (string) ( $body['store_id'] ?? '' );
+		// 13/10/2026 — connecting the store IS the opt-in: the merchant approves the data
+		// sharing described on the Vegax authorization page, and the readme states the
+		// freshly installed checkbox is unticked until the store connects. The settings
+		// checkbox remains the control: unticking it stops every outbound request.
+		$saved['consent_sync'] = '1';
 		if ( ! empty( $body['agent'] ) ) {
 			$saved['agent_name'] = sanitize_text_field( (string) $body['agent'] );
 		}
@@ -217,14 +232,16 @@ class Vegax_AIS_Admin {
 		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
-		$code = isset( $_GET['vegax_pair'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_pair'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only one-click pairing link; the single-use code is validated server-side in pair().
+		$code = isset( $_GET['vegax_pair'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_pair'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- this GET only STAGES the code; the credential write happens on the nonce-protected Connect POST below.
 		if ( '' === $code ) {
 			return;
 		}
-		$res = self::pair( $code );
-		set_transient( 'vegax_ais_pair_msg', (string) ( $res['message'] ?? '' ), 180 );
-		// Redirect WITHOUT the code: it is single-use, so it must not sit in the URL bar or in history.
-		wp_safe_redirect( add_query_arg( 'vegax_msg', ! empty( $res['ok'] ) ? 'paired' : 'pair_error', self::page_url() ) );
+		// 13/10/2026 (WordPress.org review: "the use of nonces") — a GET link must not write
+		// credentials. The code is only STAGED here; the connect happens when the administrator
+		// presses the nonce-protected Connect button on the settings screen.
+		set_transient( 'vegax_ais_pair_pending', $code, 10 * MINUTE_IN_SECONDS );
+		// The code is single-use, so it must not sit in the URL bar or in browser history.
+		wp_safe_redirect( add_query_arg( 'vegax_msg', 'pair_confirm', self::page_url() ) );
 		exit;
 	}
 
@@ -353,9 +370,19 @@ class Vegax_AIS_Admin {
 			unset( $saved['store_token'] );
 			unset( $saved['store_secret'] );
 			unset( $saved['store_id_override'] );
+			// 13/10/2026 — the expiring-token pair is a credential too. Leaving it behind kept
+			// the refresh cron talking to the service after "Disconnect", which contradicts the
+			// promise that disconnecting stops all outbound traffic.
+			unset( $saved['access_token'] );
+			unset( $saved['refresh_token'] );
+			unset( $saved['access_token_expires_at'] );
+			unset( $saved['refresh_token_expires_at'] );
+			unset( $saved['token_refresh_failed'] );
 			$saved['consent_sync'] = '0';
 			update_option( VEGAX_AIS_OPTION, $saved );
 		}
+		delete_transient( 'vegax_ais_refresh_lock' );
+		wp_clear_scheduled_hook( 'vegax_ais_cron_refresh' );
 		Vegax_AIS_Settings::set_status( array() );
 		wp_safe_redirect(
 			add_query_arg(
@@ -434,6 +461,10 @@ class Vegax_AIS_Admin {
 		$msg       = isset( $_GET['vegax_msg'] ) ? sanitize_text_field( wp_unslash( $_GET['vegax_msg'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- display-only notice key, whitelisted against $notes and escaped before output.
 		$pair_note = (string) get_transient( 'vegax_ais_pair_msg' );
 		delete_transient( 'vegax_ais_pair_msg' );
+		// 13/10/2026 — saved credentials are never printed back into the HTML. The placeholder
+		// only tells the administrator a value is already stored.
+		$vegax_mask   = '••••••••';
+		$pending_code = (string) get_transient( 'vegax_ais_pair_pending' );
 		$notes = array(
 			'saved'        => __( 'Settings saved.', 'vegax-support' ),
 			'synced'       => __( 'Catalogue synced with Vegax.', 'vegax-support' ),
@@ -441,7 +472,8 @@ class Vegax_AIS_Admin {
 			'error'        => __( 'Vegax could not be reached - check the token/secret and the API address.', 'vegax-support' ),
 			'paired'       => __( 'Connected in one click - the widget is live on your store.', 'vegax-support' ),
 			'pair_error'   => __( 'The pairing link could not be used - ask the office for a fresh one.', 'vegax-support' ),
-			'disconnected' => __( 'Disconnected from Vegax. The widget has been removed and data sharing has stopped.', 'vegax-support' ),
+			'disconnected' => __( 'Disconnected from Vegax. The widget has been removed, the stored credentials were deleted and data sharing has stopped.', 'vegax-support' ),
+			'pair_confirm' => __( 'Pairing code received. Press Connect below to finish connecting this store - a link on its own never changes your settings.', 'vegax-support' ),
 		);
 		?>
 		<div class="wrap">
@@ -507,12 +539,13 @@ class Vegax_AIS_Admin {
 					</tr>
 					<tr>
 						<th scope="row"><label for="store_token"><?php esc_html_e( 'Store token', 'vegax-support' ); ?></label></th>
-						<td><input name="store_token" id="store_token" type="text" class="regular-text" value="<?php echo esc_attr( (string) $s['store_token'] ); ?>" autocomplete="off" /></td>
+						<td><input name="store_token" id="store_token" type="password" class="regular-text" value="" placeholder="<?php echo esc_attr( $vegax_mask ); ?>" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Saved values are not shown again. Leave this empty to keep the stored token.', 'vegax-support' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="store_secret"><?php esc_html_e( 'Store secret', 'vegax-support' ); ?></label></th>
-						<td><input name="store_secret" id="store_secret" type="password" class="regular-text" value="<?php echo esc_attr( (string) $s['store_secret'] ); ?>" autocomplete="off" />
-						<p class="description"><?php esc_html_e( 'Given to you by Vegax. Used to sign every request in both directions.', 'vegax-support' ); ?></p></td>
+						<td><input name="store_secret" id="store_secret" type="password" class="regular-text" value="" placeholder="<?php echo esc_attr( $vegax_mask ); ?>" autocomplete="off" />
+						<p class="description"><?php esc_html_e( 'Given to you by Vegax. Used to sign every request in both directions. Saved values are not shown again &mdash; leave this empty to keep the stored secret.', 'vegax-support' ); ?></p></td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="store_id_override"><?php esc_html_e( 'Shop domain override', 'vegax-support' ); ?></label></th>
@@ -595,7 +628,7 @@ class Vegax_AIS_Admin {
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="vegax_ais_pair" />
 					<?php wp_nonce_field( 'vegax_ais_pair' ); ?>
-					<input name="vegax_pair_code" type="text" class="regular-text" autocomplete="off" placeholder="<?php echo esc_attr__( 'One-time pairing code', 'vegax-support' ); ?>" />
+					<input name="vegax_pair_code" type="text" class="regular-text" autocomplete="off" value="<?php echo esc_attr( $pending_code ); ?>" placeholder="<?php echo esc_attr__( 'One-time pairing code', 'vegax-support' ); ?>" />
 					<button class="button button-secondary" type="submit"><?php esc_html_e( 'Connect', 'vegax-support' ); ?></button>
 				</form>
 			</details>
