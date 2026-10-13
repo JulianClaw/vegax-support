@@ -157,12 +157,6 @@ class Vegax_AIS_Settings {
 	}
 
 	/**
-	 * Record a status field (last sync time, last error, ...).
-	 *
-	 * @param array $patch Key/value pairs.
-	 * @return void
-	 */
-	/**
 	 * Drop every stored status field (13/10/2026).
 	 *
 	 * Used when the store is disconnected, so a stale "last sync" / "last heartbeat" is never

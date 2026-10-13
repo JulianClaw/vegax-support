@@ -37,7 +37,7 @@ This plugin relies on the Vegax service, a third-party hosted service, to genera
 
 **What the plugin sends and when**
 
-Every payload also carries the plugin version and a timestamp, so the service can tell one request from another. Neither adds personal data.
+Every request tells the service which store it belongs to. The pairing, connection and token-refresh requests also say which plugin version is calling, and each order-status event carries its own event id and timestamp, so the service can tell one request from another. None of those fields adds personal data.
 
 The plugin contacts the Vegax service in two situations. (1) When an administrator starts the connection &mdash; pressing **Connect with Vegax**, or sending a one-time pairing code &mdash; the plugin asks the service for this store's credentials. That call is made by the administrator, through an action protected by a capability check and a nonce, and it is what the connection itself needs. (2) Once the store is connected **and** the data-sharing consent checkbox on the settings screen is ticked, the plugin sends the data listed below. Connecting ticks that box for you; untick it, or press **Disconnect**, and no request leaves your site any more (Disconnect also deletes the stored credentials and removes every scheduled job).
 
@@ -46,7 +46,7 @@ The plugin contacts the Vegax service in two situations. (1) When an administrat
 * **Order status events** (order number, status, status label, order date, total, currency, item count, shipped flag, shipment tracking providers and URLs) and a hashed customer e-mail: sent when an order status changes. The clear-text e-mail is only sent if the administrator enables the "Send the customer e-mail with order events" option.
 * **Daily heartbeat** (a small status payload sent once a day): store key, site URL, site name, WordPress version, WooCommerce version, PHP version, currency, HPOS flag, order-lookup enabled flag, widget enabled flag, product count.
 * **Token refresh** (only for stores connected with the expiring-token connection, only when the access token is close to expiry, and only while the data-sharing consent checkbox is ticked): the store key and the refresh token, so the service can issue a fresh token pair. This runs in the background and is never triggered by a shopper's page view.
-* **Pairing request** (only when the administrator uses the one-time pairing code or the Connect with Vegax authorization): the site URL, the one-time code and the plugin version.
+* **Pairing request** (only when the administrator uses the one-time pairing code or the Connect with Vegax authorization): the site URL, the one-time code, the OAuth `state` value and the plugin version.
 * **Identity token** (only when the administrator switches on Identity verification, and only for a signed-in customer): a short-lived signed token carrying the customer's store id and an expiry. It is a signature, not personal data — no name, e-mail or address is included.
 
 The storefront chat widget script is loaded from the Vegax service so replies can be generated. It is only loaded when (a) the widget is enabled in the settings, (b) the store is connected to the service, and (c) the data-sharing consent checkbox is ticked. Turning consent off removes the script from the storefront on the next page view.
@@ -145,6 +145,10 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.9 =
+
+Security release. The status route is now administrator-only, every route declares its own access rule, saved credentials are no longer printed back into the settings page, Disconnect removes every credential, saved status and scheduled job, and data sharing is enforced on requests in both directions. Please update.
 
 = 1.0.8 =
 
