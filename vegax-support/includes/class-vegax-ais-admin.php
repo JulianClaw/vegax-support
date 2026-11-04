@@ -646,6 +646,14 @@ class Vegax_AIS_Admin {
 			<p class="description" style="max-width:760px;margin-top:18px">
 				<?php esc_html_e( 'Vegax receives your product catalogue, your policy pages and order status events so the agent can answer customers. Customer e-mail addresses are hashed unless you enable the e-mail option above. No order addresses or payment details are ever sent.', 'vegax-support' ); ?>
 			</p>
+
+			<p class="description" style="max-width:760px">
+				<?php esc_html_e( 'This plugin is free and open source', 'vegax-support' ); ?>
+				(<a href="<?php echo esc_url( 'https://github.com/JulianClaw/vegax-support' ); ?>" target="_blank" rel="noopener noreferrer">GitHub</a>).
+				<?php esc_html_e( 'If it saves you time, a review on', 'vegax-support' ); ?>
+				<a href="<?php echo esc_url( 'https://wordpress.org/support/plugin/vegax-support/reviews/' ); ?>" target="_blank" rel="noopener noreferrer">WordPress.org</a>
+				<?php esc_html_e( 'helps other store owners find it.', 'vegax-support' ); ?>
+			</p>
 		</div>
 		<?php
 	}

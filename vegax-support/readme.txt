@@ -4,7 +4,7 @@ Tags: woocommerce, customer support, live chat, order tracking, chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.9
+Stable tag: 1.0.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
@@ -79,7 +79,7 @@ At [vegaxclaw.com/woocommerce](https://vegaxclaw.com/woocommerce).
 
 = Is the plugin open source? =
 
-Yes, it is GPL-2.0-or-later. The Vegax service is a paid subscription; the plugin itself is never locked or broken when the subscription expires.
+Yes, it is GPL-2.0-or-later. The Vegax service is a paid subscription; the plugin itself is never locked or broken when the subscription expires. The source code, issue tracker and release history are public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support) &mdash; the same files that are released here.
 
 == Developers ==
 
@@ -93,7 +93,16 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 * `vegax_ais_order_event_payload` &mdash; add or remove fields in the order-status event.
 * `vegax_ais_tracking_items` &mdash; change the shipment tracking items read from an order.
 
+== Source code ==
+
+The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
+
 == Changelog ==
+
+= 1.0.10 =
+
+* The plugin source code, issue tracker and release history are public at https://github.com/JulianClaw/vegax-support (GPL-2.0-or-later, same files as released here), and the readme now says so.
+* The settings screen adds one line of text with two links: the public source code, and the WordPress.org review page. It is plain text inside the settings screen &mdash; no pop-up, no site-wide notice, no dismissal prompt and no incentive of any kind.
 
 = 1.0.9 =
 
