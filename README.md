@@ -1,107 +1,106 @@
-# vegax-support — Vegax AI Support cho WooCommerce
+# Vegax Support — AI customer support for WooCommerce
 
-Plugin WordPress/WooCommerce kết nối store vào cloud Vegax (`https://office.vegaxclaw.com`).
-Đây là **adapter WooCommerce** của Vegax AI Support: bơm widget chat, đồng bộ tri thức có chữ ký,
-và mở đường **tra đơn (WISMO)** để AI trả lời đúng trạng thái đơn thật của khách.
+[![WordPress.org](https://img.shields.io/wordpress/plugin/v/vegax-support?label=wordpress.org)](https://wordpress.org/plugins/vegax-support/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.5%2B-21759b)](https://wordpress.org/plugins/vegax-support/)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4)](https://wordpress.org/plugins/vegax-support/)
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
+[![CI](https://github.com/JulianClaw/vegax-support/actions/workflows/ci.yml/badge.svg)](https://github.com/JulianClaw/vegax-support/actions/workflows/ci.yml)
 
-**Version:** 1.0.0 · **License:** GPL-2.0-or-later · **PHP:** 7.4+ · **WP:** 6.0+ · **Woo:** 7.0+ · HPOS compatible
+The **WooCommerce adapter** for [Vegax](https://vegaxclaw.com/woocommerce). It puts an AI support
+employee on your storefront, feeds it your real catalogue and policies, and lets it answer
+*“where is my order?”* with the customer's actual order status — without exporting your customer list
+to anyone.
 
-## 1. Plugin làm gì
+The AI itself runs on the hosted Vegax service. **This repository is the plugin: open source, GPL,
+auditable.** It contains no API keys and no customer data.
 
-| Khả năng | Chi tiết |
+- **Install from WordPress.org:** https://wordpress.org/plugins/vegax-support/
+- **Shopify store?** The approved Shopify app is [Vegax Support Autopilot](https://apps.shopify.com/vegax-support-autopilot).
+- **Product page:** https://vegaxclaw.com/woocommerce
+
+## What the plugin does
+
+| Capability | Detail |
 |---|---|
-| Bơm widget chat | chèn `widget.js` vào storefront qua `wp_footer` (không sửa theme) |
-| Đồng bộ tri thức | `POST /api/woo/knowledge` — sản phẩm + policy, **giữ nguyên** `brand_color`/`custom_rules` do chủ shop đặt |
-| Heartbeat | `POST /api/woo/heartbeat` — báo cloud store còn sống, kèm phiên bản WP/Woo/HPOS |
-| Tra đơn (WISMO) | cloud gọi `GET /wp-json/vegax/v1/order-lookup` (có chữ ký) → AI trả trạng thái/tổng tiền/tracking thật |
-| Sự kiện đơn | `POST /api/woo/order-event` khi đơn đổi trạng thái |
+| Chat widget | Injects `widget.js` into the storefront through `wp_footer` — no theme edits |
+| Knowledge sync | `POST /api/woo/knowledge` — products and policy pages, signed, keeping your `brand_color` and `custom_rules` |
+| Heartbeat | `POST /api/woo/heartbeat` — reports the store is alive, with WP / Woo / HPOS versions |
+| Order lookup (WISMO) | The service calls `GET /wp-json/vegax/v1/order-lookup` with an HMAC signature; the AI answers with the real status, total and tracking number |
+| Order events | `POST /api/woo/order-event` when an order changes status, so the assistant is never stale |
 
-## 2. Cài đặt
+## Install
 
-1. WP Admin → **Plugins → Add New → Upload Plugin** → chọn `vegax-support-<version>.zip` → **Install** → **Activate**.
-2. Vào **Settings → Vegax AI Support**.
-3. Điền: `store_token`, `store_secret`, `api_base` (mặc định `https://office.vegaxclaw.com`).
-4. Bấm kiểm tra kết nối → phải thấy `connected`, đúng Woo/WP version, số sản phẩm.
-5. Widget xuất hiện trên storefront (kiểm bằng mắt + `curl` tìm tag `widget.js`).
+**From the WordPress plugin directory (recommended)**
 
-`store_id()` tự lấy host của `home_url()`; đặt `store_id_override` khi store chạy sau CDN/proxy/staging
-hoặc khi WP constants ghi đè site URL.
+1. Install and activate WooCommerce, and publish your product and policy pages.
+2. In WP Admin → **Plugins → Add New**, search for **Vegax Support** → **Install** → **Activate**.
+   (Or download the zip from https://wordpress.org/plugins/vegax-support/ and upload it.)
+3. Go to **WooCommerce → Vegax Support**.
+4. Click **Connect with Vegax**, approve the store on the Vegax site, and you are returned with the
+   store connected. Stores that already hold a token and secret, or use a one-time pairing code,
+   keep working exactly as before.
+5. Optional: switch on **Identity verification** to bind chats to signed-in customers, then click
+   **Test connection**.
 
-## 3. Hợp đồng chữ ký (verified 2 chiều)
+`store_id()` is derived from the host of `home_url()`. Set `store_id_override` when the store sits
+behind a CDN or proxy, or when WP constants override the site URL (staging, for example).
 
-**Plugin → cloud**
+## Requirements
+
+- WordPress 6.5 or newer
+- PHP 7.4 or newer
+- WooCommerce 7.0 or newer (HPOS compatible)
+- A Vegax store connection (free trial, then a paid plan — pricing at https://vegaxclaw.com/#pricing)
+
+## Security model
+
+- **Signed in both directions.** Every request carries an HMAC-SHA256 signature over the raw body
+  and a timestamp; the plugin rejects stale or unsigned calls.
+- **No customer export.** The service asks the store for one customer's order at a time, through
+  `order-lookup`, and receives only what the answer needs.
+- **Secrets stay in your database**, in the plugin settings, never in this repository.
+- **Identity verification (opt-in)** ties a chat session to a signed-in customer so an order status
+  can never be answered to the wrong person.
+
 ```
+Plugin → service
 POST /api/woo/{heartbeat,knowledge,order-event}
 X-Vegax-Token:     <store_token>
 X-Vegax-Timestamp: <unix ts>
 X-Vegax-Signature: hex(hmac_sha256(ts + "." + raw_body, store_secret))
+
+Service → plugin
+GET /wp-json/vegax/v1/order-lookup  (same signature scheme, replayed-protection on the timestamp)
 ```
 
-**Cloud → plugin**
-```
-GET /wp-json/vegax/v1/order-lookup?store=&email=&order=&ts=&sig=
-sig = hex(hmac_sha256("order-lookup|store|email|order|ts", store_secret))
-```
-Cửa sổ lệch thời gian 300 s · `store` phải khớp site · 60 lookup/IP/giờ ·
-**rate limit plugin: 240/giờ/STORE** (key trên `store_id()`, KHÔNG key trên IP — mọi lookup đều tới từ
-một IP của cloud, key theo IP sẽ chặn chéo tất cả store).
-
-REST routes: `/health`, `/order-lookup`, `/knowledge`.
-
-## 4. Quyền riêng tư
-
-- Bản tóm tắt đơn **KHÔNG** chứa địa chỉ, số điện thoại, email.
-- Đơn chỉ được trả khi email khách cung cấp **đúng là chủ đơn** (chống dò đơn).
-- `share_customer_email` (mặc định **tắt**) mới là thứ thêm email thô vào sự kiện đơn.
-
-## 5. Cấu trúc
-
-```
-vegax-support/
-  vegax-support.php          # bootstrap + constants + activation
-  uninstall.php                 # dọn option khi gỡ
-  readme.txt                    # readme kiểu WordPress.org
-  includes/
-    class-vegax-ais-settings.php   # 1 option: vegax_ais_settings
-    class-vegax-ais-safe.php       # 1 chỗ lọc/escape dùng chung (Vegax_AIS_Safe)
-    class-vegax-ais-admin.php      # trang cài đặt + nút kiểm tra kết nối
-    class-vegax-ais-widget.php     # bơm widget.js (+ chặn cache cho phiên cá nhân hoá)
-    class-vegax-ais-identity.php   # token danh tính người dùng cuối (HMAC + hạn)
-    class-vegax-ais-cloud.php      # gọi cloud có chữ ký
-    class-vegax-ais-rest.php       # REST: health / order-lookup / knowledge
-    class-vegax-ais-orders.php     # đọc đơn (HPOS + legacy)
-    class-vegax-ais-knowledge.php  # dựng payload tri thức
-  build.sh                      # đóng gói zip + md5 (lặp lại được)
-tests/                          # PHPUnit (không nằm trong zip phát hành)
-composer.json · phpunit.xml.dist · phpcs.xml.dist
-.github/workflows/ci.yml        # CI: php -l nhiều phiên bản + PHPUnit + PHPCS
-```
-
-## 6. Developers — điểm mở rộng (hooks)
-
-Plugin chỉ thêm filter — **không** tự gọi nên hành vi mặc định không đổi. Thêm vào
-`functions.php` của theme (hoặc một mu-plugin):
-
-| Hook | Kiểu | Việc |
-|---|---|---|
-| `vegax_ais_widget_tag_attributes` | filter | `(array $thuộc_tính, string $store)` — đổi/thêm thuộc tính tag widget, ví dụ đổi nhãn nút: `$a['data-label'] = 'Hỏi đáp';` |
-| `vegax_ais_knowledge_product` | filter | `(array $sản_phẩm, WC_Product $p)` — thêm/bớt trường gửi cho cloud theo từng sản phẩm |
-| `vegax_ais_heartbeat_payload` | filter | `(array $payload)` — thêm trường vào heartbeat hằng ngày |
-| `vegax_ais_order_event_payload` | filter | `(array $event, WC_Order $order)` — sửa payload sự kiện đổi trạng thái đơn |
-| `vegax_ais_widget_should_render` · `vegax_ais_widget_on_checkout` | filter | ẩn/hiện widget theo điều kiện (đã có từ 1.0.6) |
-| `vegax_ais_tracking_items` | filter | thêm nguồn mã vận đơn riêng |
-
-Ví dụ: `add_filter( 'vegax_ais_widget_tag_attributes', function ( $a ) { $a['data-label'] = 'Chat với shop'; return $a; } );`
-
-## 7. Build bản phát hành
+## Development
 
 ```bash
-./build.sh          # → dist/vegax-support-<version>.zip + .md5
+composer install
+composer run lint     # phpcs with phpcs.xml.dist
+composer run test     # phpunit
+php php_syntax_check.py
+./build.sh            # builds the distributable zip into build/
 ```
 
-**Quy tắc:** mọi thay đổi plugin phải vào repo này trước, rồi mới build zip để phát.
-Đừng sửa trực tiếp file trong container WordPress — bản trong container không phải nguồn sự thật.
+`verify_submission.py` checks the built package against the WordPress.org submission rules before a
+release. CI (`.github/workflows/ci.yml`) runs the PHP matrix, PHPUnit and PHPCS on every push;
+`.github/workflows/release.yml` builds the package.
 
-## 8. Bản quyền
+## Scope of this repository
 
-GPL-2.0-or-later. Copyright (c) NCK Group LLC / Vegax.
+This is the WooCommerce plugin. The hosted AI service — retrieval, the support model, billing and
+tenant isolation — is proprietary and not part of this repository. Issues about the plugin's PHP
+code, hooks, the REST endpoint or the build are welcome here.
+
+## Contributing
+
+Bug reports and pull-request fixes are welcome. Please include the WordPress and WooCommerce
+versions you tested, and whether HPOS is enabled. Security issues: email support@vegaxclaw.com
+instead of opening a public issue.
+
+## License
+
+GPL-2.0-or-later. See [LICENSE](LICENSE). Vegax is a product of NCK Group LLC.
+
+If this plugin is useful to you, a star helps other store owners find it.
