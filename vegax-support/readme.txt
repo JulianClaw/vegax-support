@@ -4,17 +4,17 @@ Tags: woocommerce, live chat, free live chat, order tracking, ai chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.12
+Stable tag: 1.0.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
 WC tested up to: 11.1
 
-WooCommerce customer support: answers from your own catalogue and lets customers check their own order status in chat.
-
-**Free plan: 100 conversations a month, no card required.** Install, connect, and answer real customer questions before you decide anything about a paid plan.
+WooCommerce AI support: answers from your catalogue and checks a customer's own order status. Free plan: 100 conversations a month.
 
 == Description ==
+
+**Free plan: 100 conversations a month, no card required.** Install, connect, and answer real customer questions before you decide anything about a paid plan.
 
 [Vegax Support](https://vegaxclaw.com/woocommerce) puts a support agent on your WooCommerce store. It reads your product catalogue and policy pages, so it answers from what you actually sell and how you actually do business &mdash; never on guesses.
 
@@ -104,6 +104,10 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
 
 == Changelog ==
+
+= 1.0.13 =
+
+* The free plan is stated in the short description and at the top of the description, where the plugin directory actually shows it.
 
 = 1.0.12 =
 
