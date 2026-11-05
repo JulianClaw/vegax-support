@@ -4,7 +4,7 @@ Tags: woocommerce, live chat, free live chat, order tracking, ai chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.13
+Stable tag: 1.0.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
@@ -27,6 +27,13 @@ WooCommerce AI support: answers from your catalogue and checks a customer's own 
 The [Vegax service](https://vegaxclaw.com) is required. The plugin itself is open-source (GPL) and is never locked or broken: you see the settings screen, the connect screen, the notices and the uninstall flow with or without a subscription. Only the answering engine lives outside your site.
 
 A 7-day free trial is included. After the trial you can choose a plan to keep the service running. See [vegaxclaw.com/woocommerce](https://vegaxclaw.com/woocommerce) for current plans and pricing.
+
+== Screenshots ==
+
+1. The chat bubble on a live storefront - no theme edit, no template override.
+2. Answers come from your own catalogue: products, variants and prices shown inside the chat.
+3. When a policy is not published on your site, it says so instead of inventing one.
+4. The same widget on a phone, answering shipping and returns questions.
 
 == External services ==
 
@@ -104,6 +111,10 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
 
 == Changelog ==
+
+= 1.0.14 =
+
+* Adds the screenshots section: the widget on a live storefront, a catalogue answer with variants and prices, an unpublished-policy answer, and the mobile view.
 
 = 1.0.13 =
 
