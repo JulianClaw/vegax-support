@@ -1,16 +1,18 @@
-=== Vegax Support ===
+=== Vegax Support – AI Customer Support & Order Status for WooCommerce ===
 Contributors: vegaxclaw
-Tags: woocommerce, customer support, live chat, order tracking, chatbot
+Tags: woocommerce, live chat, free live chat, order tracking, ai chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.11
+Stable tag: 1.0.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
 WC tested up to: 11.1
 
 WooCommerce customer support: answers from your own catalogue and lets customers check their own order status in chat.
+
+**Free plan: 100 conversations a month, no card required.** Install, connect, and answer real customer questions before you decide anything about a paid plan.
 
 == Description ==
 
@@ -73,6 +75,10 @@ It answers common questions and order-status lookups. It does not handle escalat
 
 Yes, through the widget. That is the point &mdash; so customers get immediate answers.
 
+= Is there a free plan? =
+
+Yes. The free plan covers 100 conversations a month with no card required: the widget answers from your catalogue and policy pages, and order-status lookups work the same way they do on a paid plan. If you outgrow it, you choose a plan; if you stop, the plugin keeps working as software and simply stops answering.
+
 = Where can I see the current plans and pricing? =
 
 At [vegaxclaw.com/woocommerce](https://vegaxclaw.com/woocommerce).
@@ -98,6 +104,12 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
 
 == Changelog ==
+
+= 1.0.12 =
+
+* The listing now states the free plan (100 conversations a month, no card) instead of leaving it to be discovered after install.
+* Plugin name includes what it does, so it is findable by search inside WordPress and on the plugin directory.
+* Tags updated to match how store owners search for support plugins.
 
 = 1.0.11 =
 
