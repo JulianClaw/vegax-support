@@ -4,7 +4,7 @@ Tags: woocommerce, customer support, live chat, order tracking, chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.10
+Stable tag: 1.0.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
@@ -98,6 +98,11 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
 
 == Changelog ==
+
+= 1.0.11 =
+
+* Maintenance release. The public repository now carries a security policy (how to report a vulnerability privately, and what the plugin does and does not handle). No functional change to the plugin code.
+* Tested against WordPress 7.1.
 
 = 1.0.10 =
 
