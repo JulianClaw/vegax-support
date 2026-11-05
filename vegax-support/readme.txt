@@ -4,7 +4,7 @@ Tags: woocommerce, live chat, free live chat, order tracking, ai chatbot
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.14
+Stable tag: 1.0.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.0
@@ -15,6 +15,15 @@ WooCommerce AI support: answers from your catalogue and checks a customer's own 
 == Description ==
 
 **Free plan: 100 conversations a month, no card required.** Install, connect, and answer real customer questions before you decide anything about a paid plan.
+
+Plans, and what each one covers:
+
+* **Free** - $0 - 100 conversations a month.
+* **Starter** - $79/month - 500 conversations a month.
+* **Pro** - $199/month - 2,500 conversations a month.
+* **Enterprise** - $399/month - 10,000 conversations a month.
+
+Annual billing is available on the service site. These numbers are the same ones shown on the plugin directory listing and in the app listing, so you can compare without opening three tabs.
 
 [Vegax Support](https://vegaxclaw.com/woocommerce) puts a support agent on your WooCommerce store. It reads your product catalogue and policy pages, so it answers from what you actually sell and how you actually do business &mdash; never on guesses.
 
@@ -111,6 +120,10 @@ The plugin exposes these filters, so a site can adapt the integration without ed
 The plugin is GPL-2.0-or-later, and its source is public at [github.com/JulianClaw/vegax-support](https://github.com/JulianClaw/vegax-support). Those are the same files released here, so the code on WordPress.org can be compared line by line. Bug reports and pull requests are welcome on the issue tracker; security reports should go to support@vegaxclaw.com rather than a public issue.
 
 == Changelog ==
+
+= 1.0.15 =
+
+* The description now lists the plans with the same prices and conversation limits used in the app listing, so the two listings cannot drift apart.
 
 = 1.0.14 =
 
